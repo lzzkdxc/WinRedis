@@ -1,1 +1,6 @@
-Debug
+Debug/*
+Release/*
+x64/*
+MyRedis/Debug/*
+MyRedis/Release/*
+MyRedis/x64/*
