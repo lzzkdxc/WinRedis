@@ -10,4 +10,18 @@
 #endif
 
 void* zmalloc(size_t size);
+void* zcalloc(size_t size);
+void* zrealloc(void *ptr, size_t size);
+void* zfree(void *ptr, size_t size);
+char* zstrdup(const char *s);
+size_t zmalloc_used_memory(void);
+void zmalloc_enable_thread_safeness(void);
+void zmalloc_set_oom_handler(void(*oom_handler)(size_t));
+size_t zmalloc_get_memory_size(void);
+void zlibc_free(void *ptr);
+
+#ifdef HAVE_MALLOC_SIZE
+size_t	zmalloc_size(void *ptr);
+#endif
+
 #endif
