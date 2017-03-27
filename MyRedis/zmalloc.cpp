@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(_WIN32)
 #include <mutex>
+#include <windows.h>
 #else
 #include <pthread.h>
 #endif
@@ -27,7 +28,7 @@
 #define update_zmalloc_stat_add(__n) __sync_add_and_fetch(&used_memory, (__n))
 #define update_zmalloc_stat_sub(__n) __sync_add_and_fetch(&used_memory, (__n))
 #else
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(_WIN32)
 #define update_zmalloc_stat_add(__n) do { \
 	std::lock_guard<std::mutex> lock(used_memory_mutex); \
 	used_memory += (__n); \
@@ -74,9 +75,10 @@
 	} \
 } while(0)
 
+// global variable
 static size_t used_memory = 0;
 static int zmalloc_thread_safe = 0;
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(_WIN32)
 std::mutex used_memory_mutex;
 #else
 pthread_mutex_t used_memory_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -165,14 +167,14 @@ size_t zmalloc_size(void *ptr)
 #endif
 
 // 内存释放
-void* zfree(void *ptr, size_t size)
+void zfree(void *ptr, size_t size)
 {
 #ifndef HAVE_MALLOC_SIZE
 	size_t oldsize;
 	void *realptr;
 #endif
 
-	if (ptr == nullptr) return nullptr;
+	if (ptr == nullptr) return;
 #ifdef HAVE_MALLOC_SIZE
 	update_zmalloc_stat_free(size);
 	free(ptr);
@@ -208,7 +210,7 @@ size_t zmalloc_used_memory(void)
 #if defined(__ATOMIC_RELAXED) || defined(HAVE_ATOMIC)
 		um = update_zmalloc_stat_add(0);
 #else
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(_WIN32)
 		std::lock_guard<std::mutex> lock(used_memory_mutex);
 		um = used_memory;
 #else
@@ -238,11 +240,125 @@ void zmalloc_set_oom_handler(void(*oom_handler)(size_t))
 	zmalloc_oom_handler = oom_handler;
 }
 
+// 获取所给内存和已使用内存的大小之比
+float zmalloc_get_fragmentation_ratio(size_t rss)
+{
+	return (float)(rss / zmalloc_used_memory());
+}
+
+//获取RSS信息(Resident Set Size)
+size_t zmalloc_get_rss(void)
+{
+#if defined(HAVE_PROC_STAT)
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+	int page = sysconf(_SC_PAGESIZE);
+	size_t rss;
+	char buf[4096];
+	char filename[256];
+	int fd, count;
+	char *p, *x;
+
+	snprintf(filename, 256, "/proc/%d/stat", getpid());
+	if ((fd = open(filename, O_RDONLY)) == -1) return 0;
+	if (read(fd, buf, 4096) <= 0) {
+		close(fd);
+		return 0;
+	}
+	close(fd);
+
+	p = buf;
+	count = 23; /* RSS is the 24th field in /proc/<pid>/stat */
+	while (p && count--) {
+		p = strchr(p, ' ');
+		if (p) p++;
+	}
+	if (!p) return 0;
+	x = strchr(p, ' ');
+	if (!x) return 0;
+	*x = '\0';
+
+	rss = strtoll(p, NULL, 10);
+	rss *= page;
+	return rss;
+#elif defined(HAVE_TASKINFO)
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/sysctl.h>
+#include <mach/task.h>
+#include <mach/mach_init.h>
+	task_t task = MACH_PORT_NULL;
+	struct task_basic_info t_info;
+	mach_msg_type_number_t t_info_count = TASK_BASIC_INFO_COUNT;
+
+	if (task_for_pid(current_task(), getpid(), &task) != KERN_SUCCESS)
+		return 0;
+	task_info(task, TASK_BASIC_INFO, (task_info_t)&t_info, &t_info_count);
+
+	return t_info.resident_size;
+#else
+	return zmalloc_used_memory();
+#endif
+}
+
+// 从/proc/self/smap中获取指定字段的字节数
+size_t zmalloc_get_smap_bytes_by_field(char *field)
+{
+#if defined(HAVE_PROC_SMAPS)
+	char line[1024];
+	size_t bytes = 0;
+	FILE *fp = fopen("/proc/self/smaps", "r");
+	int flen = strlen(field);
+
+	if (!fp) return 0;
+	while (fgets(line, sizeof(line), fp) != nullptr)
+	{
+		if (strncmp(line, field, flen) == 0)
+		{
+			char *p = strchr(line, 'k');
+			if (p) 
+			{
+				*p = '\0';
+				bytes += strtol(line + flen, nullptr, 10) * 1024;
+			}
+		}
+	}
+	fclose(fp);
+	return bytes;
+#else
+	((void)field);
+	return 0;
+#endif
+}
+
+// 获得实际内存大小
+size_t zmalloc_get_private_dirty(void)
+{
+	return zmalloc_get_smap_bytes_by_field("Private_Dirty:");
+}
+
 // 获取物理内存大小
 size_t zmalloc_get_memory_size()
 {
-#if defined(__unix__) || defined(__unix) || defined(unix) || \
-    (defined(__APPLE__) && defined(__MACH__))
+#if defined(_WIN32) && (defined(__CYGWIN__) || defined(__CYGWIN32__))
+	/* Cygwin under Windows. ------------------------------------ */
+	/* New 64-bit MEMORYSTATUSEX isn't available.  Use old 32.bit */
+	MEMORYSTATUS status;
+	status.dwLength = sizeof(status);
+	GlobalMemoryStatus(&status);
+	return (size_t)status.dwTotalPhys;
+#elif defined(_WIN32)
+	/* Windows. ------------------------------------------------- */
+	/* Use new 64-bit MEMORYSTATUSEX, not old 32-bit MEMORYSTATUS */
+	MEMORYSTATUSEX status;
+	status.dwLength = sizeof(status);
+	GlobalMemoryStatusEx(&status);
+	return (size_t)status.ullTotalPhys;
+#elif defined(__unix__) || defined(__unix) || defined(unix) || (defined(__APPLE__) && defined(__MACH__))
 #if defined(CTL_HW) && (defined(HW_MEMSIZE) || defined(HW_PHYSMEM64))
 	int mid[2];
 	mid[0] = CTL_HW;
