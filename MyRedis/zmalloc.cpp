@@ -22,19 +22,16 @@
 // __atomic_add_fetch是C++11特性中提供的原子加操作
 #if defined(__ATOMIC_RELAXED)
 #define update_zmalloc_stat_add(__n) __atomic_add_fetch(&used_memory, (__n), __ATOMIC_RELAXED)
-#define update_zmalloc_stat_sub(__n) __atomic_add_fetch(&used_memory, (__n), __ATOMIC_RELAXED)
+#define update_zmalloc_stat_sub(__n) __atomic_sub_fetch(&used_memory, (__n), __ATOMIC_RELAXED)
 // 如果不支持C++11，则调用GCC提供的原子加操作
 #elif defined(HAVE_ATOMIC)
 #define update_zmalloc_stat_add(__n) __sync_add_and_fetch(&used_memory, (__n))
-#define update_zmalloc_stat_sub(__n) __sync_add_and_fetch(&used_memory, (__n))
+#define update_zmalloc_stat_sub(__n) __sync_sub_and_fetch(&used_memory, (__n))
 #else
 #if defined(_WIN32)
-#define update_zmalloc_stat_add(__n) do { \
-	std::lock_guard<std::mutex> lock(used_memory_mutex); \
-	used_memory += (__n); \
-} while (0)
+#define update_zmalloc_stat_add(__n) InterlockedExchangeAdd(&used_memory, (__n))
 
-#define update_zmalloc_stat_sub(__n) do { \
+#define update_zmalloc_stat_sub(__n) do {	\
 	std::lock_guard<std::mutex> lock(used_memory_mutex); \
 	used_memory -= (__n); \
 } while (0)
@@ -75,8 +72,9 @@
 	} \
 } while(0)
 
-// global variable
+// 已使用的内存
 static size_t used_memory = 0;
+// 是否线程安全
 static int zmalloc_thread_safe = 0;
 #if defined(_WIN32)
 std::mutex used_memory_mutex;
@@ -167,7 +165,7 @@ size_t zmalloc_size(void *ptr)
 #endif
 
 // 内存释放
-void zfree(void *ptr, size_t size)
+void zfree(void *ptr)
 {
 #ifndef HAVE_MALLOC_SIZE
 	size_t oldsize;

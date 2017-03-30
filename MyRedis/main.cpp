@@ -1,7 +1,9 @@
 #include <iostream>
-#include "sds.h"
+#include "zmalloc.h"
 
 void main(int argc, char **argv)
 {
+	auto m = zmalloc(10);
+
 	system("pause");
 }
