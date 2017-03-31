@@ -3,7 +3,6 @@
 #include "sds.h"
 #include "sdsalloc.h"
 
-#pragma warning(disable:4267)
 
 // 得到sds的header的大小
 static inline int sdsHdrSize(char type)
@@ -107,8 +106,6 @@ sds sdsempty()
 {
 	return sdsnewlen("", 0);
 }
-
-
 
 // 复制字符串并返回一个新的字符串
 sds sdsnew(const char *init)

@@ -27,6 +27,9 @@
     <ClCompile Include="adlist.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="dict.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sds.h">
@@ -42,6 +45,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="adlist.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="dict.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

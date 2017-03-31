@@ -238,7 +238,6 @@ listNode *listSearchKey(list *l, void *key)
 	listRewind(l, &iter);
 	while ((node = listNext(&iter)) != nullptr)
 	{
-		void *value;
 		if ((l->match != nullptr && l->match(node->value, key)) ||
 			(node->value == key))
 		{

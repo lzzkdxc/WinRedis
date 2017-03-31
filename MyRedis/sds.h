@@ -5,6 +5,8 @@
 
 #include "stdint.h"
 
+#pragma warning(disable:4267)
+#pragma warning(disable:4244)
 /*
 ——————————————————————————————————
 |-----header----|------data------|
@@ -15,16 +17,15 @@
 
 typedef char* sds;
 
-#pragma pack(push, 1)
-/* Note: sdshdr5 is never used, we just access the flags byte directly.
-* However is here to document the layout of type 5 SDS strings. */
-typedef struct
+#pragma pack(push, 1) //把原来对齐方式设置压栈，并设新的对齐方式设置为一个字节对齐
+// sdshdr5 已不再使用
+typedef struct _sdshdr5
 {
 	unsigned char flags;
 	char buf[1];
 }sdshdr5;
 
-typedef struct  
+typedef struct _sdshdr8
 {
 	uint8_t len;			//表示字符串真正的长度，不包含空终止字符
 	uint8_t alloc;			//表示字符串的最大容量，不包含Header和最后的空终止字符
@@ -32,7 +33,7 @@ typedef struct
 	char buf[1];
 }sdshdr8;
 
-typedef struct  
+typedef struct _sdshdr16
 {
 	uint16_t len;
 	uint16_t alloc;
@@ -40,7 +41,7 @@ typedef struct
 	char buf[1];
 }sdshdr16;
 
-typedef struct  
+typedef struct _sdshdr32
 {
 	uint32_t len;
 	uint32_t alloc;
@@ -48,7 +49,7 @@ typedef struct
 	char buf[1];
 }sdshdr32;
 
-typedef struct
+typedef struct _sdshdr64
 {
 	uint64_t len;
 	uint64_t alloc;
@@ -56,7 +57,7 @@ typedef struct
 	char buf[1];
 }sdshdr64;
 
-#pragma pack(pop)
+#pragma pack(pop)	// 恢复对齐状态
 
 //5种header类型
 #define SDS_TYPE_5	0
