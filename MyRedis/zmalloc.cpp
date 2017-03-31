@@ -94,7 +94,7 @@ static void zmalloc_default_oom(size_t size)
 static void(*zmalloc_oom_handler)(size_t) = zmalloc_default_oom;
 
 // 申请内存
-void* zmalloc(size_t size)
+void *zmalloc(size_t size)
 {
 	// 多申请的PREFIX_SIZE大小的内存用于记录该段内存的大小
 	void *ptr = malloc(size + PREFIX_SIZE);
@@ -109,7 +109,7 @@ void* zmalloc(size_t size)
 #endif // HAVE_MALLOC_SIZE
 }
 
-void* zcalloc(size_t size)
+void *zcalloc(size_t size)
 {
 	void *ptr = calloc(1, size + PREFIX_SIZE);
 	if (!ptr) zmalloc_oom_handler(size);
@@ -124,7 +124,7 @@ void* zcalloc(size_t size)
 }
 
 // 调整已申请内存的大小
-void* zrealloc(void *ptr, size_t size)
+void *zrealloc(void *ptr, size_t size)
 {
 #ifndef HAVE_MALLOC_SIZE
 	void *realptr;
@@ -191,7 +191,7 @@ void zlibc_free(void *ptr)
 }
 
 // 字符串拷贝
-char* zstrdup(const char *s)
+char *zstrdup(const char *s)
 {
 	size_t l = strlen(s) + 1;
 	char *p = (char*)zmalloc(l);

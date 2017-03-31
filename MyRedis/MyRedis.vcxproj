@@ -146,11 +146,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="adlist.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="sds.cpp" />
     <ClCompile Include="zmalloc.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="adlist.h" />
     <ClInclude Include="sds.h" />
     <ClInclude Include="sdsalloc.h" />
     <ClInclude Include="stdint.h" />
