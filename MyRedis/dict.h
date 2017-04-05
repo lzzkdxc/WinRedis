@@ -22,7 +22,7 @@ typedef struct _dictEntry
 // 字典类型
 typedef struct _dictType 
 {
-	unsigned int (*hashFuction)(const void *key);		// 计算哈希值
+	unsigned int (*hashFunction)(const void *key);		// 计算哈希值
 	void *(*keyDup)(void *privdata, const void *key);	// 复制键
 	void *(*valDup)(void *privdata, const void *obj);	// 复制值
 	int (*keyCompare)(void *privdata, const void *key1, const void *key2);	// 比较键
@@ -63,6 +63,43 @@ typedef struct _dictIterator
 } dictIterator;
 
 // 遍历回调函数
-typedef void (dictScanFunction)(void *privdata, const dictEntry *de); 
+typedef void (dictScanFunction)(void *privdata, const dictEntry *de);
+
+// 每个hash table的初始长度
+#define DICT_HT_INITIAL_SIZE	4
+
+#define dictFreeVal(d, entry) \
+	if ((d)->type->valDestructor) \
+		((d)->type->valDestructor((d)->privdata, (entry)->v.val))
+
+#define dictSetVal(d, entry, _val_) do { \
+	if ((d)->type->valDup) \
+		entry->v.val = (d)->type->valDup((d)->privdata, _val_); \
+	else \
+		entry->v.val = (_val_); \
+} while (0)
+
+#define dictSetKey(d, entry, _key_) do { \
+	if ((d)->type->keyDup) \
+		entry->key = (d)->type->keyDup((d)->privdata, _key_); \
+	else \
+		entry->key = (_key_); \
+} while (0);
+
+#define dictCompareKeys(d, key1, key2) \
+	(((d)->type->keyCompare) ? \
+		(d)->type->keyCompare((d)->privdata, key1, key2) : (key1) == (key2))
+
+#define dictHashKey(d, key) (d)->type->hashFunction(key)
+#define dictGetKey(he) ((he)->key)
+#define dictGetVal(he) ((he)->v.val)
+#define dictIsRehashing(d) ((d)->rehashidx != -1)
+
+dict *dictCreate(dictType *type, void *privDataPtr);
+int dictAdd(dict *d, void *key, void *val);
+dictEntry *dictAddRaw(dict *d, void *key);
+int dictReplace(dict *d, void *key, void *val);
+dictEntry *dictFind(dict *d, const void *key);
+int dictRehash(dict *d, int n);
 
 #endif

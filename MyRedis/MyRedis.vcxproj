@@ -147,6 +147,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="adlist.cpp" />
+    <ClCompile Include="debug.cpp" />
     <ClCompile Include="dict.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="sds.cpp" />
@@ -155,6 +156,7 @@
   <ItemGroup>
     <ClInclude Include="adlist.h" />
     <ClInclude Include="dict.h" />
+    <ClInclude Include="redisassert.h" />
     <ClInclude Include="sds.h" />
     <ClInclude Include="sdsalloc.h" />
     <ClInclude Include="stdint.h" />
