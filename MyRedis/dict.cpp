@@ -4,7 +4,7 @@
 #include <stdarg.h>
 #include <limits.h>
 #if defined(_WIN32)
-
+#include <time.h>
 #else
 #include <sys/time.h>
 #endif
@@ -12,6 +12,10 @@
 #include "dict.h"
 #include "zmalloc.h"
 #include "redisassert.h"
+
+#if defined(_WIN32)
+#define random rand
+#endif
 
 /*通过dictEnableResize() / dictDisableResize()方法我们可以启用/禁用ht空间重新分配.
 * 这对于Redis来说很重要, 因为我们用的是写时复制机制而且不想在子进程执行保存操作时移动过多的内存.
@@ -23,10 +27,10 @@ static int dict_can_resize = 1;
 static unsigned int dict_force_resize_ratio = 5;
 
 /* -------------------------- 私有原型 ---------------------------- */
-static int _dictExpandIfNeeded(dict *ht);
+static int _dictExpandIfNeeded(dict *d);
 static unsigned long _dictNextPower(unsigned long size);
-static int _dictKeyIndex(dict *ht, const void *key);
-static int _dictInit(dict *ht, dictType *type, void *privDataPtr);
+static int _dictKeyIndex(dict *d, const void *key);
+static int _dictInit(dict *d, dictType *type, void *privDataPtr);
 
 /* -------------------------- hash方法 ---------------------------- */
 /* Thomas Wang's 32 bit Mix Function */
@@ -117,7 +121,7 @@ unsigned int dictGenCaseHashFunction(const unsigned char *buf, int len) {
 
 /* 重置已经调用过ht_init()来初始化的hash table.
 * NOTE: 该方法应当只由 ht_destroy()来调用. */
-static int _dictReset(dictht *ht)
+static void _dictReset(dictht *ht)
 {
 	ht->table = nullptr;
 	ht->size = 0;
@@ -132,6 +136,56 @@ dict *dictCreate(dictType *type, void *privDataPtr)
 
 	_dictInit(d, type, privDataPtr);
 	return d;
+}
+
+// 初始化字典
+int _dictInit(dict *d, dictType *type, void *privDataPtr)
+{
+	_dictReset(&d->ht[0]);
+	_dictReset(&d->ht[1]);
+	d->type = type;
+	d->privdata = privDataPtr;
+	d->rehashidx = -1;
+	d->iterators = 0;
+	return DICT_OK;
+}
+
+// 调整字典大小，去除多余的长度
+int dictResize(dict *d)
+{
+	int minimal;
+
+	if (!dict_can_resize || dictIsRehashing(d)) return DICT_ERR;
+	minimal = d->ht[0].used;
+	if (minimal < DICT_HT_INITIAL_SIZE)
+		minimal = DICT_HT_INITIAL_SIZE;
+	return dictExpand(d, minimal);
+}
+
+// 扩展或创建哈希表
+int dictExpand(dict *d, unsigned long size)
+{
+	dictht ht;
+	unsigned long realsize = _dictNextPower(size);
+	// 如果正在rehash或者hash的数量小于已使用的数量，那这个值无效
+	if (dictIsRehashing(d) || d->ht[0].used > size) return DICT_ERR;
+	// rehash相同数量的哈希表数量没什么用
+	if (realsize == d->ht[0].size) return DICT_ERR;
+	// 分配新的哈希表并初始化
+	ht.size = realsize;
+	ht.sizemask = realsize - 1;
+	ht.table = (dictEntry**)zcalloc(realsize*sizeof(dictEntry*));
+	ht.used = 0;
+	// 如果是第一次初始化，我们只需要设置第一个哈希表以便可以接收键值
+	if (d->ht[0].table == nullptr)
+	{
+		d->ht[0] = ht;
+		return DICT_OK;
+	}
+
+	d->ht[1] = ht;
+	d->rehashidx = 0;
+	return DICT_OK;
 }
 
 /* 执行N步渐进式的rehash操作，如果仍存在旧表中的数据迁移到新表，则返回1，反之返回0
@@ -183,6 +237,31 @@ int dictRehash(dict *d, int n)
 	}
 
 	return 1;
+}
+
+long long timeInMilliseconds()
+{
+#if defined(_WIN32)
+	return 0;
+#else
+	struct timeval tv;
+
+	gettimeofday(&tv, NULL);
+	return (((long long)tv.tv_sec) * 1000) + (tv.tv_usec / 1000);
+#endif
+}
+
+int dictRehashMilliseconds(dict *d, int ms)
+{
+	auto start = timeInMilliseconds();
+	int rehashes = 0;
+
+	while (dictRehash(d, 100))
+	{
+		rehashes += 100;
+		if (timeInMilliseconds() - start > ms) break;
+	}
+	return rehashes;
 }
 
 // 在执行查询和更新操作时，如果符合rehash条件就会触发一次rehash操作，每次执行一步
@@ -251,20 +330,25 @@ int dictReplace(dict *d, void *key, void *val)
 	return 0;
 }
 
+dictEntry *dictReplaceRaw(dict *d, void *key)
+{
+	dictEntry *entry = dictFind(d, key);
+	return entry ? entry : dictAddRaw(d, key);
+}
+
 // 查找键值对
 dictEntry *dictFind(dict *d, const void *key)
 {
 	dictEntry *he;
-	unsigned int h, idx, table;
+	unsigned int h, idx;
 
 	// 空的字典
 	if (d->ht[0].used + d->ht[1].used == 0) return nullptr;
 	// 如果正在进行rehash，则执行rehash操作
 	if (dictIsRehashing(d)) _dictRehashStep(d);
-	// 计算哈希值
 	h = dictHashKey(d, key);
 	// 在两个表中查找对应的键值对
-	for (table = 0; table <= 1; table++)
+	for (int table = 0; table <= 1; table++)
 	{
 		// 根据掩码来计算索引值
 		idx = h & d->ht[table].sizemask;
@@ -290,4 +374,289 @@ void *dictFetchValue(dict *d, const void *key)
 
 	he = dictFind(d, key);
 	return he ? dictGetVal(he) : nullptr;
+}
+
+// 从字典中随机返回一个键值对
+dictEntry *dictGetRandomKey(dict *d)
+{
+	dictEntry *he, *orighe;
+	unsigned int idx;
+	int listlen, listele;
+
+	if (dictSize(d) == 0) return nullptr;
+	// 如果正在进行rehash，则执行一次rehash操作
+	if (dictIsRehashing(d)) _dictRehashStep(d);
+	// 随机返回一个键的具体操作是：先随机选取一个索引值，然后在该索引值
+	// 对应的键值对链表中随机选取一个键值对返回
+	if (dictIsRehashing(d))
+	{
+		// 如果正在rehash则需要考虑两个哈希表中的数据
+		do
+		{
+			// 我们确定在索引0到rehashidx-1之间没有元素
+			idx = d->rehashidx + (random() % (d->ht[0].size + d->ht[1].size - d->rehashidx));
+			he = (idx >= d->ht[0].size) ? d->ht[1].table[idx - d->ht[0].size] : d->ht[0].table[idx];
+		} while (he == nullptr);
+	}
+	else
+	{
+		do 
+		{
+			idx = random() & d->ht[0].sizemask;
+			he = d->ht[0].table[idx];
+		} while (he == nullptr);
+	}
+
+	// 这里获得一个非空的桶，先统计队列中节点的数量，再随机一个下标
+	listlen = 0;
+	orighe = he;
+	while (he)
+	{
+		he = he->next;
+		listlen++;
+	}
+	listele = random() % listlen;
+	he = orighe;
+	while (listele--) he = he->next;
+	return he;
+}
+
+// 随机返回多个键，并存储在des中, 返回实际的键数量
+unsigned int dictGetSomeKeys(dict *d, dictEntry **des, unsigned int count)
+{
+	unsigned long j;
+	unsigned long tables;
+	unsigned long stored = 0, maxsizemask;
+	unsigned long maxsteps;
+
+	if (dictSize(d) < count) count = dictSize(d);
+	maxsteps = count * 10;
+
+	// 尝试count次rehash
+	for (j = 0; j < count; j++)
+	{
+		if (dictIsRehashing(d))
+			_dictRehashStep(d);
+		else
+			break;
+	}
+
+	tables = dictIsRehashing(d) ? 2 : 1;
+	maxsizemask = d->ht[0].sizemask;
+	if (tables > 1 && maxsizemask < d->ht[1].sizemask)
+		maxsizemask = d->ht[1].sizemask;
+
+	unsigned long i = random() & maxsizemask;
+	unsigned long emptylen = 0;
+	while (stored < count && maxsteps--)
+	{
+		for (j = 0; j < tables; j++)
+		{
+			if (tables == 2 && j == 0 && i < (unsigned long)d->rehashidx)
+			{
+				if (i >= d->ht[1].size)
+					i = d->rehashidx;
+				continue;
+			}
+
+			if (i >= d->ht[1].size) continue;
+			dictEntry *he = d->ht[j].table[i];
+
+			// 统计连续的空桶，如果次数在5次以上并且达到count的次数，则跳转到其他地方
+			if (he == nullptr)
+			{
+				emptylen++;
+				if (emptylen >= 5 && emptylen > count)
+				{
+					i = random() & maxsizemask;
+					emptylen = 0;
+				}
+			}
+			else
+			{
+				emptylen = 0;
+				while (he)
+				{
+					// 收集所有非空的元素
+					*des = he;
+					des++;
+					he = he->next;
+					stored++;
+					if (stored == count) return stored;
+				}
+			}
+		}
+		i = (i + 1) & maxsizemask;
+	}
+	return stored;
+}
+
+/* 查找并删除指定键对应的键值对
+* nofree: 是否释放键和值
+*/
+static int dictGenericDelete(dict *d, const void *key, int nofree)
+{
+	unsigned int h, idx;
+	dictEntry *he, *prevHe;
+
+	if (d->ht[0].size == 0) return DICT_ERR;
+	if (dictIsRehashing(d)) _dictRehashStep(d);
+	h = dictHashKey(d, key);
+
+	for (int table = 0; table <= 1; table++)
+	{
+		// 计算索引值
+		idx = h & d->ht[table].sizemask;
+		he = d->ht[table].table[idx];
+		prevHe = nullptr;
+		// 执行在链表中删除某个节点的操作
+		while (he)
+		{
+			if (key == he->key || dictCompareKeys(d, key, he->key))
+			{
+				// 从列表中取消链接元素
+				if (prevHe)
+					prevHe->next = he->next;
+				else
+					d->ht[table].table[idx] = he->next;
+				if (!nofree)
+				{
+					// 释放键和值
+					dictFreeKey(d, he);
+					dictFreeVal(d, he);
+				}
+				zfree(he);
+				d->ht[table].used--;
+				return DICT_OK;
+			}
+			prevHe = he;
+			he = he->next;
+		}
+		// 如果没有进行rehash操作，则没必要对ht[1]进行查找
+		if (!dictIsRehashing(d)) break;
+	}
+	return DICT_ERR;
+}
+
+// 删除该键值对，并释放键和值
+int dictDelete(dict *d, const void *key)
+{
+	return dictGenericDelete(d, key, 0);
+}
+
+// 删除该键值对，不释放键和值
+int dictDeleteNoFree(dict *d, const void *key)
+{
+	return dictGenericDelete(d, key, 1);
+}
+
+// 释放哈希表
+int _dictClear(dict *d, dictht *ht, void (callback)(void*))
+{
+	// 清除和释放所有元素
+	for (auto i = 0; i < ht->size && ht->used > 0; i++)
+	{
+		dictEntry *he, *nextHe;
+
+		if (callback && (i & 65535) == 0) callback(d->privdata);
+		if ((he = ht->table[i]) == nullptr) continue;
+
+		while (he)
+		{
+			nextHe = he->next;
+			dictFreeKey(d, he);
+			dictFreeVal(d, he);
+			zfree(he);
+			ht->used--;
+			he = nextHe;
+		}
+	}
+	// 释放哈希表
+	zfree(ht->table);
+	// 重置哈希表
+	_dictReset(ht);
+	return DICT_OK;
+}
+
+// 删除和释放整个字典结构
+void dictRelease(dict *d)
+{
+	_dictClear(d, &d->ht[0], nullptr);
+	_dictClear(d, &d->ht[1], nullptr);
+	zfree(d); // 释放字典
+}
+
+// 如果需要，则扩展哈希表
+static int _dictExpandIfNeeded(dict *d)
+{
+	// rehash正在进行，直接返回
+	if (dictIsRehashing(d)) return DICT_OK;
+	// 如果哈希表是空的，以初始长度来创建
+	if (d->ht[0].size == 0) return dictExpand(d, DICT_HT_INITIAL_SIZE);
+	/* 如果我们达到1：1的比例，并且我们被允许可以调整大小或者元素和桶之间的比例超过了安全阀值，
+	那么我们把桶的大小调整成原来的两倍*/
+	if (d->ht[0].used >= d->ht[0].size &&
+		(dict_can_resize || d->ht[0].used / d->ht[0].size > dict_force_resize_ratio))
+	{
+		return dictExpand(d, d->ht[0].used * 2);
+	}
+	return DICT_OK;
+}
+
+// 扩展哈希表容量，每次扩展之前大小的两倍，返回扩展后的大小
+static unsigned long _dictNextPower(unsigned long size)
+{
+	auto i = DICT_HT_INITIAL_SIZE;
+
+	if (size > LONG_MAX) return LONG_MAX;
+	while (true)
+	{
+		if (i >= size)
+			return i;
+		i *= 2;
+	}
+}
+
+// 根据key计算在空哈希表中的索引，如果key已存在，返回-1
+static int _dictKeyIndex(dict *d, const void *key)
+{
+	unsigned int h, idx;
+	dictEntry *he;
+
+	if (_dictExpandIfNeeded(d) == DICT_ERR)
+		return -1;
+
+	h = dictHashKey(d, key);
+	for (auto table = 0; table <= 1; table++)
+	{
+		idx = h & d->ht[table].sizemask;
+		he = d->ht[table].table[idx];
+		while (he)
+		{
+			if (key == he->key || dictCompareKeys(d, key, he->key))
+				return -1;
+			he = he->next;
+		}
+		if (!dictIsRehashing(d)) break;
+	}
+	return idx;
+}
+
+// 清空字典表
+void dictEmpty(dict *d, void(callback)(void*))
+{
+	_dictClear(d, &d->ht[0], callback);
+	_dictClear(d, &d->ht[1], callback);
+	d->rehashidx = -1;
+	d->iterators = 0;
+}
+
+void dictEnableResize(void)
+{
+	dict_can_resize = 1;
+}
+
+void dictDisableResize(void)
+{
+	dict_can_resize = 0;
 }

@@ -68,10 +68,12 @@ typedef void (dictScanFunction)(void *privdata, const dictEntry *de);
 // 每个hash table的初始长度
 #define DICT_HT_INITIAL_SIZE	4
 
+// 释放值
 #define dictFreeVal(d, entry) \
 	if ((d)->type->valDestructor) \
 		((d)->type->valDestructor((d)->privdata, (entry)->v.val))
 
+// 更新节点的值
 #define dictSetVal(d, entry, _val_) do { \
 	if ((d)->type->valDup) \
 		entry->v.val = (d)->type->valDup((d)->privdata, _val_); \
@@ -79,27 +81,47 @@ typedef void (dictScanFunction)(void *privdata, const dictEntry *de);
 		entry->v.val = (_val_); \
 } while (0)
 
+// 释放键
+#define dictFreeKey(d, entry) \
+	if ((d)->type->keyDestructor) \
+		((d)->type->keyDestructor((d)->privdata, (entry)->key))
+
+// 更新节点的键
 #define dictSetKey(d, entry, _key_) do { \
 	if ((d)->type->keyDup) \
 		entry->key = (d)->type->keyDup((d)->privdata, _key_); \
 	else \
 		entry->key = (_key_); \
-} while (0);
+} while (0)
 
+// 比较键
 #define dictCompareKeys(d, key1, key2) \
 	(((d)->type->keyCompare) ? \
 		(d)->type->keyCompare((d)->privdata, key1, key2) : (key1) == (key2))
 
-#define dictHashKey(d, key) (d)->type->hashFunction(key)
+#define dictHashKey(d, key) (d)->type->hashFunction(key) //计算哈希值
 #define dictGetKey(he) ((he)->key)
 #define dictGetVal(he) ((he)->v.val)
+#define dictSize(d) ((d)->ht[0].used + (d)->ht[1].used)
 #define dictIsRehashing(d) ((d)->rehashidx != -1)
 
 dict *dictCreate(dictType *type, void *privDataPtr);
+int dictResize(dict *d);
+int dictExpand(dict *d, unsigned long size);
 int dictAdd(dict *d, void *key, void *val);
 dictEntry *dictAddRaw(dict *d, void *key);
 int dictReplace(dict *d, void *key, void *val);
+dictEntry *dictReplaceRaw(dict *d, void *key);
+int dictDelete(dict *d, const void *key);
+int dictDeleteNoFree(dict *d, const void *key);
+void dictRelease(dict *d);
 dictEntry *dictFind(dict *d, const void *key);
+dictEntry *dictGetRandomKey(dict *d);
+unsigned int dictGetSomeKeys(dict *d, dictEntry **des, unsigned int count);
+void dictEmpty(dict *d, void(callback)(void*));
+void dictEnableResize(void);
+void dictDisableResize(void);
 int dictRehash(dict *d, int n);
+int dictRehashMilliseconds(dict *d, int ms);
 
 #endif
