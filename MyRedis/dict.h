@@ -117,11 +117,13 @@ int dictDeleteNoFree(dict *d, const void *key);
 void dictRelease(dict *d);
 dictEntry *dictFind(dict *d, const void *key);
 dictEntry *dictGetRandomKey(dict *d);
-unsigned int dictGetSomeKeys(dict *d, dictEntry **des, unsigned int count);
+size_t dictGetSomeKeys(dict *d, dictEntry **des, size_t count);
 void dictEmpty(dict *d, void(callback)(void*));
 void dictEnableResize(void);
 void dictDisableResize(void);
 int dictRehash(dict *d, int n);
 int dictRehashMilliseconds(dict *d, int ms);
+void dictSetHashFunctionSeed(size_t initval);
+size_t dictGetHashFunctionSeed(void);
 
 #endif

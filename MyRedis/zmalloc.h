@@ -3,6 +3,13 @@
 #define __xstr(s) __str(s)
 #define __str(s) #s
 
+/*
+！！！！！！！！！！！！！！！！！！！！！！！！！！！！
+|---size---|-----data------|
+！！！！！！！！！！！！！！！！！！！！！！！！！！！！
+*/
+
+
 #if defined(USE_TCMALLOC)
 #define ZMALLOC_LIB ("tcmalloc-" __xstr(TC_VERSION_MAJOR) "." __xstr(TC_VERSION_MINOR))
 #include <google/tcmalloc.h>

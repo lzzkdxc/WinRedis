@@ -4,11 +4,11 @@
 #include <stdarg.h>
 #include <limits.h>
 #if defined(_WIN32)
+#include <WinSock2.h>
 #include <time.h>
 #else
 #include <sys/time.h>
 #endif
-#include <ctype.h>
 #include "dict.h"
 #include "zmalloc.h"
 #include "redisassert.h"
@@ -45,13 +45,15 @@ unsigned int dictIntHashFunction(unsigned int key)
 	return key;
 }
 
-static uint32_t dict_hash_function_seed = 5381;
+static size_t dict_hash_function_seed = 5381;
 
-void dictSetHashFunctionSeed(uint32_t seed) {
+void dictSetHashFunctionSeed(size_t seed)
+{
 	dict_hash_function_seed = seed;
 }
 
-uint32_t dictGetHashFunctionSeed(void) {
+size_t dictGetHashFunctionSeed(void)
+{
 	return dict_hash_function_seed;
 }
 
@@ -65,7 +67,8 @@ uint32_t dictGetHashFunctionSeed(void) {
 * 1. 它不是增量运行的.
 * 2. 在大端/小端的机器上不会产生相同的结果.
 */
-unsigned int dictGenHashFunction(const void *key, int len) {
+unsigned int dictGenHashFunction(const void *key, int len) 
+{
 	/* 'm' and 'r' are mixing constants generated offline.
 	They're not really 'magic', they just happen to work well.  */
 	uint32_t seed = dict_hash_function_seed;
@@ -78,7 +81,8 @@ unsigned int dictGenHashFunction(const void *key, int len) {
 	/* Mix 4 bytes at a time into the hash */
 	const unsigned char *data = (const unsigned char *)key;
 
-	while (len >= 4) {
+	while (len >= 4) 
+	{
 		uint32_t k = *(uint32_t*)data;
 
 		k *= m;
@@ -93,7 +97,8 @@ unsigned int dictGenHashFunction(const void *key, int len) {
 	}
 
 	/* Handle the last few bytes of the input array  */
-	switch (len) {
+	switch (len) 
+	{
 	case 3: h ^= data[2] << 16;
 	case 2: h ^= data[1] << 8;
 	case 1: h ^= data[0]; h *= m;
@@ -109,7 +114,8 @@ unsigned int dictGenHashFunction(const void *key, int len) {
 }
 
 /* And a case insensitive hash function (based on djb hash) */
-unsigned int dictGenCaseHashFunction(const unsigned char *buf, int len) {
+unsigned int dictGenCaseHashFunction(const unsigned char *buf, int len) 
+{
 	unsigned int hash = (unsigned int)dict_hash_function_seed;
 
 	while (len--)
@@ -241,14 +247,27 @@ int dictRehash(dict *d, int n)
 
 long long timeInMilliseconds()
 {
-#if defined(_WIN32)
-	return 0;
-#else
 	struct timeval tv;
+#if defined(_WIN32)
+	time_t clock;
+	struct tm t;
+	SYSTEMTIME wtm;
 
+	GetLocalTime(&wtm);
+	t.tm_year = wtm.wYear - 1900;
+	t.tm_mon = wtm.wMonth - 1;
+	t.tm_mday = wtm.wDay;
+	t.tm_hour = wtm.wHour;
+	t.tm_min = wtm.wMinute;
+	t.tm_sec = wtm.wSecond;
+	t.tm_isdst = -1;
+	clock = mktime(&t);
+	tv.tv_sec = clock;
+	tv.tv_usec = wtm.wMilliseconds * 1000;
+#else
 	gettimeofday(&tv, NULL);
-	return (((long long)tv.tv_sec) * 1000) + (tv.tv_usec / 1000);
 #endif
+	return (((long long)tv.tv_sec) * 1000) + (tv.tv_usec / 1000);
 }
 
 int dictRehashMilliseconds(dict *d, int ms)
@@ -422,7 +441,7 @@ dictEntry *dictGetRandomKey(dict *d)
 }
 
 // 随机返回多个键，并存储在des中, 返回实际的键数量
-unsigned int dictGetSomeKeys(dict *d, dictEntry **des, unsigned int count)
+size_t dictGetSomeKeys(dict *d, dictEntry **des, size_t count)
 {
 	unsigned long j;
 	unsigned long tables;
