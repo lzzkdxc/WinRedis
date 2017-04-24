@@ -858,13 +858,97 @@ unsigned char *ziplistDeleteRange(unsigned char *zl, int index, unsigned int num
 	return (p == NULL) ? zl : __ziplistDelete(zl, p, num);
 }
 
+/* 将长度为'slen'的's'与'p'进行比较， */
 unsigned int ziplistCompare(unsigned char *p, unsigned char *s, unsigned int slen)
 {
+	zlentry entry;
+	unsigned char sencoding;
+	long long zval, sval;
+	if (p[0] == ZIP_END) return 0;
+
+	zipEntry(p, &entry);
+	if (ZIP_IS_STR(entry.encoding))
+	{
+		// 原始比较
+		if (entry.len == slen)
+			return memcmp(p + entry.headersize, s, slen) == 0;
+		else
+			return 0;
+	}
+	else
+	{
+		// 尝试比较编码值
+		// 不要比较编码，因为不同的实现可能不同地编码整数
+		if (zipTryEncoding(s, slen, &sval, &sencoding))
+		{
+			zval = zipLoadInteger(p + entry.headersize, entry.encoding);
+			return zval == sval;
+		}
+	}
 	return 0;
 }
 
+/* 从位置p开始查找元素, skip表示每查找一次跳过的元素个数 */
 unsigned char *ziplistFind(unsigned char *p, unsigned char *vstr, unsigned int vlen, unsigned int skip)
 {
+	int skipcnt = 0;
+	unsigned char vencoding = 0;
+	long long vll = 0;
+
+	while (p[0] != ZIP_END)
+	{
+		unsigned int prevlensize, encoding, lensize, len;
+		unsigned char *q;
+
+		// 取出元素中元素内容放入q中
+		ZIP_DECODE_PREVLENSIZE(p, prevlensize);
+		ZIP_DECODE_LENGTH(p + prevlensize, encoding, lensize, len);
+		q = p + prevlensize + lensize;
+
+		if (skipcnt == 0)
+		{
+			// 如果元素是字符串编码
+			if (ZIP_IS_STR(encoding))
+			{
+				if (len == vlen && memcmp(q, vstr, vlen) == 0)
+				{
+					return p;
+				}
+			}
+			else
+			{
+				// 元素是整数编码, 按照整型进行比较
+				if (vencoding == 0)
+				{
+					if (!zipTryEncoding(vstr, vlen, &vll, &vencoding))
+					{
+						// 如果无法进行整数编码, 则直接赋值为UCHAR_MAX以后不会在进行整数类型比较
+						vencoding = UCHAR_MAX;
+					}
+					assert(vencoding);
+				}
+
+				// 如果待查元素是整型编码, 直接进行比较
+				if (vencoding != UCHAR_MAX)
+				{
+					long long ll = zipLoadInteger(q, encoding);
+					if (ll == vll)
+						return p;
+				}
+			}
+
+			// 重置跳过元素值
+			skipcnt = skip;
+		}
+		else
+		{
+			skipcnt--;
+		}
+
+		// 移动到下个元素位置
+		p = q + len;
+	}
+
 	return NULL;
 }
 
