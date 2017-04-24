@@ -15,35 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="sds.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="zmalloc.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="adlist.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="dict.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="debug.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="ziplist.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="endianconv.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="config.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="sds.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -74,5 +45,40 @@
     <ClInclude Include="config.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="util.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="adlist.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="config.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="debug.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="dict.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="endianconv.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="sds.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="util.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ziplist.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="zmalloc.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

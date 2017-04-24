@@ -51,7 +51,7 @@ sds sdsnewlen(const void *init, size_t initlen)
 	sh = s_malloc(hdrlen + initlen + 1);
 	if (!init)
 		memset(sh, 0, hdrlen + initlen + 1);
-	if (sh == nullptr) return NULL;
+	if (sh == NULL) return NULL;
 	// s为数据部分的起始指针
 	s = (char*)sh + hdrlen;
 	fp = ((unsigned char *)s) - 1;
@@ -110,7 +110,7 @@ sds sdsempty()
 // 复制字符串并返回一个新的字符串
 sds sdsnew(const char *init)
 {
-	size_t initlen = (init == nullptr) ? 0 : strlen(init);
+	size_t initlen = (init == NULL) ? 0 : strlen(init);
 	return sdsnewlen(init, initlen);
 }
 
@@ -123,7 +123,7 @@ sds sdsdup(const sds s)
 // 释放内存
 void sdsfree(sds s)
 {
-	if (s == nullptr) return;
+	if (s == NULL) return;
 	s_free((char*)s - sdsHdrSize(s[-1]));
 }
 
@@ -162,7 +162,7 @@ sds sdsMakeRoomFor(sds s, size_t addlen)
 		// 如果与原类型相同，直接调用realloc函数扩充内存
 		// 因为header没有变，所以不需要重新设置长度
 		newsh = s_realloc(sh, hdrlen + newlen + 1);
-		if (newsh == nullptr) return NULL;
+		if (newsh == NULL) return NULL;
 		s = (char*)newsh + hdrlen;
 	}
 	else
@@ -170,7 +170,7 @@ sds sdsMakeRoomFor(sds s, size_t addlen)
 		// 如果类型调整了，header的大小就需要调整
 		// 这时就需要移动buf[]部分，所以不能使用realloc
 		newsh = s_malloc(hdrlen + newlen + 1);
-		if (newsh == nullptr) return NULL;
+		if (newsh == NULL) return NULL;
 		memcpy((char*)newsh + hdrlen, s, len + 1);
 		s_free(sh);
 		s = (char*)newsh + hdrlen;
@@ -198,13 +198,13 @@ sds sdsRemoveFreeSpace(sds s)
 	if (oldtype == type)
 	{
 		newsh = s_realloc(sh, len + hdrlen + 1);
-		if (newsh == nullptr) return NULL;
+		if (newsh == NULL) return NULL;
 		s = (char*)newsh + hdrlen;
 	}
 	else
 	{
 		newsh = s_malloc(len + hdrlen + 1);
-		if (newsh == nullptr) return NULL;
+		if (newsh == NULL) return NULL;
 		memcpy((char*)newsh + hdrlen, s, len + 1);
 		s_free(sh);
 		s = (char*)newsh + hdrlen;

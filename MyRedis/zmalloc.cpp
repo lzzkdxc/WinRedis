@@ -1,5 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
+
+// 原始系统free释放方法
+void zlibc_free(void *ptr)
+{
+	free(ptr);
+}
+
 #include <string.h>
 #if defined(_WIN32)
 #include <mutex>
@@ -132,7 +139,7 @@ void *zrealloc(void *ptr, size_t size)
 	size_t oldsize;
 	void *newptr;
 
-	if (ptr == nullptr) return zmalloc(size);
+	if (ptr == NULL) return zmalloc(size);
 #ifdef HAVE_MALLOC_SIZE
 	oldsize = zmalloc_size(ptr);
 	newptr = realloc(ptr, size);
@@ -172,7 +179,7 @@ void zfree(void *ptr)
 	void *realptr;
 #endif
 
-	if (ptr == nullptr) return;
+	if (ptr == NULL) return;
 #ifdef HAVE_MALLOC_SIZE
 	update_zmalloc_stat_free(size);
 	free(ptr);
@@ -184,11 +191,6 @@ void zfree(void *ptr)
 #endif
 }
 
-// 原始系统free释放方法
-void zlibc_free(void *ptr)
-{
-	free(ptr);
-}
 
 // 字符串拷贝
 char *zstrdup(const char *s)
@@ -313,7 +315,7 @@ size_t zmalloc_get_smap_bytes_by_field(char *field)
 	int flen = strlen(field);
 
 	if (!fp) return 0;
-	while (fgets(line, sizeof(line), fp) != nullptr)
+	while (fgets(line, sizeof(line), fp) != NULL)
 	{
 		if (strncmp(line, field, flen) == 0)
 		{
@@ -321,7 +323,7 @@ size_t zmalloc_get_smap_bytes_by_field(char *field)
 			if (p) 
 			{
 				*p = '\0';
-				bytes += strtol(line + flen, nullptr, 10) * 1024;
+				bytes += strtol(line + flen, NULL, 10) * 1024;
 			}
 		}
 	}

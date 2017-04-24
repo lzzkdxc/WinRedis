@@ -146,17 +146,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="adlist.cpp" />
-    <ClCompile Include="config.cpp" />
-    <ClCompile Include="debug.cpp" />
-    <ClCompile Include="dict.cpp" />
-    <ClCompile Include="endianconv.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="sds.cpp" />
-    <ClCompile Include="ziplist.cpp" />
-    <ClCompile Include="zmalloc.cpp" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="adlist.h" />
     <ClInclude Include="config.h" />
     <ClInclude Include="dict.h" />
@@ -165,8 +154,21 @@
     <ClInclude Include="sds.h" />
     <ClInclude Include="sdsalloc.h" />
     <ClInclude Include="stdint.h" />
+    <ClInclude Include="util.h" />
     <ClInclude Include="ziplist.h" />
     <ClInclude Include="zmalloc.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="adlist.cpp" />
+    <ClCompile Include="config.cpp" />
+    <ClCompile Include="debug.cpp" />
+    <ClCompile Include="dict.cpp" />
+    <ClCompile Include="endianconv.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="sds.cpp" />
+    <ClCompile Include="util.cpp" />
+    <ClCompile Include="ziplist.cpp" />
+    <ClCompile Include="zmalloc.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

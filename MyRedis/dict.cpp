@@ -129,7 +129,7 @@ unsigned int dictGenCaseHashFunction(const unsigned char *buf, int len)
 * NOTE: 该方法应当只由 ht_destroy()来调用. */
 static void _dictReset(dictht *ht)
 {
-	ht->table = nullptr;
+	ht->table = NULL;
 	ht->size = 0;
 	ht->sizemask = 0;
 	ht->used = 0;
@@ -183,7 +183,7 @@ int dictExpand(dict *d, unsigned long size)
 	ht.table = (dictEntry**)zcalloc(realsize*sizeof(dictEntry*));
 	ht.used = 0;
 	// 如果是第一次初始化，我们只需要设置第一个哈希表以便可以接收键值
-	if (d->ht[0].table == nullptr)
+	if (d->ht[0].table == NULL)
 	{
 		d->ht[0] = ht;
 		return DICT_OK;
@@ -208,7 +208,7 @@ int dictRehash(dict *d, int n)
 
 		assert(d->ht[0].size > (unsigned long)d->rehashidx);
 		// 获取rehash的索引
-		while (d->ht[0].table[d->rehashidx] == nullptr)
+		while (d->ht[0].table[d->rehashidx] == NULL)
 		{
 			d->rehashidx++;
 			if (--empty_visits == 0) return 1;
@@ -228,7 +228,7 @@ int dictRehash(dict *d, int n)
 			d->ht[1].used++;
 			de = nextde;
 		}
-		d->ht[0].table[d->rehashidx] = nullptr;
+		d->ht[0].table[d->rehashidx] = NULL;
 		d->rehashidx++;
 	}
 
@@ -302,7 +302,7 @@ int dictAdd(dict *d, void *key, void *val)
 }
 
 /* 添加键值对
-* 如果key已存在，则返回nullptr
+* 如果key已存在，则返回NULL
 * 如果key成功添加，则返回新的节点
 */
 dictEntry *dictAddRaw(dict *d, void *key)
@@ -315,7 +315,7 @@ dictEntry *dictAddRaw(dict *d, void *key)
 
 	// 获取新键值对的索引值，如果key存在则返回-1
 	if ((index = _dictKeyIndex(d, key)) == -1)
-		return nullptr;
+		return NULL;
 
 	// 如果正在进行rehash则添加到ht[1]，反之则添加到ht[0]
 	ht = dictIsRehashing(d) ? &d->ht[1] : &d->ht[0];
@@ -362,7 +362,7 @@ dictEntry *dictFind(dict *d, const void *key)
 	unsigned int h, idx;
 
 	// 空的字典
-	if (d->ht[0].used + d->ht[1].used == 0) return nullptr;
+	if (d->ht[0].used + d->ht[1].used == 0) return NULL;
 	// 如果正在进行rehash，则执行rehash操作
 	if (dictIsRehashing(d)) _dictRehashStep(d);
 	h = dictHashKey(d, key);
@@ -381,9 +381,9 @@ dictEntry *dictFind(dict *d, const void *key)
 			he = he->next;
 		}
 		// 如果没有进行rehash，则直接返回
-		if (!dictIsRehashing(d)) return nullptr;
+		if (!dictIsRehashing(d)) return NULL;
 	}
-	return nullptr;
+	return NULL;
 }
 
 // 返回给定键的值
@@ -392,7 +392,7 @@ void *dictFetchValue(dict *d, const void *key)
 	dictEntry *he;
 
 	he = dictFind(d, key);
-	return he ? dictGetVal(he) : nullptr;
+	return he ? dictGetVal(he) : NULL;
 }
 
 // 从字典中随机返回一个键值对
@@ -402,7 +402,7 @@ dictEntry *dictGetRandomKey(dict *d)
 	unsigned int idx;
 	int listlen, listele;
 
-	if (dictSize(d) == 0) return nullptr;
+	if (dictSize(d) == 0) return NULL;
 	// 如果正在进行rehash，则执行一次rehash操作
 	if (dictIsRehashing(d)) _dictRehashStep(d);
 	// 随机返回一个键的具体操作是：先随机选取一个索引值，然后在该索引值
@@ -415,7 +415,7 @@ dictEntry *dictGetRandomKey(dict *d)
 			// 我们确定在索引0到rehashidx-1之间没有元素
 			idx = d->rehashidx + (random() % (d->ht[0].size + d->ht[1].size - d->rehashidx));
 			he = (idx >= d->ht[0].size) ? d->ht[1].table[idx - d->ht[0].size] : d->ht[0].table[idx];
-		} while (he == nullptr);
+		} while (he == NULL);
 	}
 	else
 	{
@@ -423,7 +423,7 @@ dictEntry *dictGetRandomKey(dict *d)
 		{
 			idx = random() & d->ht[0].sizemask;
 			he = d->ht[0].table[idx];
-		} while (he == nullptr);
+		} while (he == NULL);
 	}
 
 	// 这里获得一个非空的桶，先统计队列中节点的数量，再随机一个下标
@@ -482,7 +482,7 @@ size_t dictGetSomeKeys(dict *d, dictEntry **des, size_t count)
 			dictEntry *he = d->ht[j].table[i];
 
 			// 统计连续的空桶，如果次数在5次以上并且达到count的次数，则跳转到其他地方
-			if (he == nullptr)
+			if (he == NULL)
 			{
 				emptylen++;
 				if (emptylen >= 5 && emptylen > count)
@@ -527,7 +527,7 @@ static int dictGenericDelete(dict *d, const void *key, int nofree)
 		// 计算索引值
 		idx = h & d->ht[table].sizemask;
 		he = d->ht[table].table[idx];
-		prevHe = nullptr;
+		prevHe = NULL;
 		// 执行在链表中删除某个节点的操作
 		while (he)
 		{
@@ -578,7 +578,7 @@ int _dictClear(dict *d, dictht *ht, void (callback)(void*))
 		dictEntry *he, *nextHe;
 
 		if (callback && (i & 65535) == 0) callback(d->privdata);
-		if ((he = ht->table[i]) == nullptr) continue;
+		if ((he = ht->table[i]) == NULL) continue;
 
 		while (he)
 		{
@@ -600,8 +600,8 @@ int _dictClear(dict *d, dictht *ht, void (callback)(void*))
 // 删除和释放整个字典结构
 void dictRelease(dict *d)
 {
-	_dictClear(d, &d->ht[0], nullptr);
-	_dictClear(d, &d->ht[1], nullptr);
+	_dictClear(d, &d->ht[0], NULL);
+	_dictClear(d, &d->ht[1], NULL);
 	zfree(d); // 释放字典
 }
 
@@ -628,7 +628,7 @@ static unsigned long _dictNextPower(unsigned long size)
 	auto i = DICT_HT_INITIAL_SIZE;
 
 	if (size > LONG_MAX) return LONG_MAX;
-	while (true)
+	while (1)
 	{
 		if (i >= size)
 			return i;

@@ -6,22 +6,22 @@
 list *listCreate(void)
 {
 	list *newlist;
-	if ((newlist = (list*)zmalloc(sizeof(list))) == nullptr) // 申请内存
-		return nullptr;
+	if ((newlist = (list*)zmalloc(sizeof(list))) == NULL) // 申请内存
+		return NULL;
 
 	// 初始化各个参数
-	newlist->head = newlist->tail = nullptr;
+	newlist->head = newlist->tail = NULL;
 	newlist->len = 0;
-	newlist->dup = nullptr;
-	newlist->free = nullptr;
-	newlist->match = nullptr;
+	newlist->dup = NULL;
+	newlist->free = NULL;
+	newlist->match = NULL;
 	return newlist;
 }
 
 // 释放整个链表
 void listRelease(list *l)
 {
-	if (l == nullptr)
+	if (l == NULL)
 		return;
 
 	unsigned long len = l->len;
@@ -43,18 +43,18 @@ void listRelease(list *l)
 list *listAddNodeHead(list *l, void *value)
 {
 	listNode *node;
-	if ((node = (listNode*)zmalloc(sizeof(listNode))) == nullptr)
-		return nullptr;
+	if ((node = (listNode*)zmalloc(sizeof(listNode))) == NULL)
+		return NULL;
 
 	node->value = value;
 	if (l->len == 0)  // 空链表
 	{
 		l->head = l->tail = node;
-		node->prev = node->next = nullptr;
+		node->prev = node->next = NULL;
 	}
 	else
 	{
-		node->prev = nullptr;
+		node->prev = NULL;
 		node->next = l->head;
 		l->head->prev = node;
 		l->head = node;
@@ -67,18 +67,18 @@ list *listAddNodeHead(list *l, void *value)
 list *listAddNodeTail(list *l, void *value)
 {
 	listNode *node;
-	if ((node = (listNode*)zmalloc(sizeof(listNode))) == nullptr)
-		return nullptr;
+	if ((node = (listNode*)zmalloc(sizeof(listNode))) == NULL)
+		return NULL;
 
 	node->value = value;
 	if (l->len == 0)  // 空链表
 	{
 		l->head = l->tail = node;
-		node->prev = node->next = nullptr;
+		node->prev = node->next = NULL;
 	}
 	else
 	{
-		node->next = nullptr;
+		node->next = NULL;
 		node->prev = l->tail;
 		l->tail->next = node;
 		l->tail = node;
@@ -94,8 +94,8 @@ list *listAddNodeTail(list *l, void *value)
 list *listInsertNode(list *l, listNode *old_node, void *value, int after)
 {
 	listNode *node;
-	if ((node = (listNode*)zmalloc(sizeof(listNode))) == nullptr)
-		return nullptr;
+	if ((node = (listNode*)zmalloc(sizeof(listNode))) == NULL)
+		return NULL;
 
 	node->value = value;
 	if (after == 0)
@@ -113,9 +113,9 @@ list *listInsertNode(list *l, listNode *old_node, void *value, int after)
 			l->tail = node;
 	}
 
-	if (node->prev != nullptr)
+	if (node->prev != NULL)
 		node->prev->next = node;
-	if (node->next != nullptr)
+	if (node->next != NULL)
 		node->next->prev = node;
 	l->len++;
 	return l;
@@ -124,18 +124,18 @@ list *listInsertNode(list *l, listNode *old_node, void *value, int after)
 // 删除节点
 void listDelNode(list *l, listNode *node)
 {
-	assert(node != nullptr);
+	assert(node != NULL);
 	
-	if (node->prev != nullptr)
+	if (node->prev != NULL)
 		node->prev->next = node->next;
 	else // 删除节点为头节点需要改变head的指向
 		l->head = node->next;
-	if (node->next != nullptr)
+	if (node->next != NULL)
 		node->next->prev = node->prev;
 	else // 删除节点为尾节点需要改变tail的指向
 		l->tail = node->prev;
 
-	if (l->free != nullptr) l->free(node->value);
+	if (l->free != NULL) l->free(node->value);
 	zfree(node);
 	l->len--;
 }
@@ -144,8 +144,8 @@ void listDelNode(list *l, listNode *node)
 listIter *listGetIterator(list *l, int direction)
 {
 	listIter *iter;
-	if ((iter = (listIter*)zmalloc(sizeof(listIter))) != nullptr)
-		return nullptr;
+	if ((iter = (listIter*)zmalloc(sizeof(listIter))) != NULL)
+		return NULL;
 	if (direction == AL_START_HEAD)
 		iter->next = l->head;
 	else
@@ -180,7 +180,7 @@ listNode *listNext(listIter *iter)
 {
 	listNode *current = iter->next;
 
-	if (current != nullptr)
+	if (current != NULL)
 		iter->next = iter->direction == AL_START_HEAD ? current->next : current->prev;
 
 	return current;
@@ -193,26 +193,26 @@ list *listDup(list *orig)
 	listIter iter;
 	listNode *node;
 
-	if ((copylist = listCreate()) == nullptr)
-		return nullptr;
+	if ((copylist = listCreate()) == NULL)
+		return NULL;
 	// 复制节点值操作函数
 	copylist->dup = orig->dup;
 	copylist->free = orig->free;
 	copylist->match = orig->match;
 
 	listRewind(orig, &iter);
-	while ((node = listNext(&iter)) != nullptr)
+	while ((node = listNext(&iter)) != NULL)
 	{
 		void *value;
 		// 复制节点
 		// 如果定义了dup函数，则按照dup函数来复制节点值
-		if (copylist->dup != nullptr)
+		if (copylist->dup != NULL)
 		{
 			value = copylist->dup(node->value);
-			if (value == nullptr)
+			if (value == NULL)
 			{
 				listRelease(copylist);
-				return nullptr;
+				return NULL;
 			}
 		}
 		else
@@ -220,10 +220,10 @@ list *listDup(list *orig)
 			value = node->value;
 		}
 		// 依次向尾部添加节点
-		if (listAddNodeTail(copylist, value) == nullptr)
+		if (listAddNodeTail(copylist, value) == NULL)
 		{
 			listRelease(copylist);
-			return nullptr;
+			return NULL;
 		}
 	}
 	return copylist;
@@ -236,15 +236,15 @@ listNode *listSearchKey(list *l, void *key)
 	listNode *node;
 
 	listRewind(l, &iter);
-	while ((node = listNext(&iter)) != nullptr)
+	while ((node = listNext(&iter)) != NULL)
 	{
-		if ((l->match != nullptr && l->match(node->value, key)) ||
+		if ((l->match != NULL && l->match(node->value, key)) ||
 			(node->value == key))
 		{
 			return node;
 		}
 	}
-	return nullptr;
+	return NULL;
 }
 
 // 根据序号来查找节点
@@ -256,12 +256,12 @@ listNode *listIndex(list *l, long index)
 	{
 		node = l->tail;
 		index = -index - 1;
-		while (index-- && node != nullptr) node = node->prev;
+		while (index-- && node != NULL) node = node->prev;
 	}
 	else
 	{
 		node = l->head;
-		while (index-- && node != nullptr) node = node->next;
+		while (index-- && node != NULL) node = node->next;
 	}
 	return node;
 }
@@ -276,10 +276,10 @@ void listRotate(list *l)
 
 	// 取出尾节点
 	l->tail = tail->prev;
-	l->tail->next = nullptr;
+	l->tail->next = NULL;
 	// 将其移动到表头并成为新的表头指针
 	l->head->prev = tail;
-	tail->prev = nullptr;
+	tail->prev = NULL;
 	tail->next = l->head;
 	l->head->prev = tail;
 }
