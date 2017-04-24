@@ -262,7 +262,7 @@ long long timeInMilliseconds()
 	t.tm_sec = wtm.wSecond;
 	t.tm_isdst = -1;
 	clock = mktime(&t);
-	tv.tv_sec = clock;
+	tv.tv_sec = (long)clock;
 	tv.tv_usec = wtm.wMilliseconds * 1000;
 #else
 	gettimeofday(&tv, NULL);
@@ -573,7 +573,7 @@ int dictDeleteNoFree(dict *d, const void *key)
 int _dictClear(dict *d, dictht *ht, void (callback)(void*))
 {
 	// 清除和释放所有元素
-	for (auto i = 0; i < ht->size && ht->used > 0; i++)
+	for (auto i = 0ul; i < ht->size && ht->used > 0; i++)
 	{
 		dictEntry *he, *nextHe;
 
@@ -625,7 +625,7 @@ static int _dictExpandIfNeeded(dict *d)
 // 扩展哈希表容量，每次扩展之前大小的两倍，返回扩展后的大小
 static unsigned long _dictNextPower(unsigned long size)
 {
-	auto i = DICT_HT_INITIAL_SIZE;
+	unsigned long i = DICT_HT_INITIAL_SIZE;
 
 	if (size > LONG_MAX) return LONG_MAX;
 	while (1)

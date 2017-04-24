@@ -11,7 +11,7 @@ zlbytes|zltail|zllen|entry1|...|entryN|zlend|
 zlbytes：表示压缩列表占总内存的字节数
 zltail：表示压缩列表头和尾之间的偏移量
 zllen：表示压缩列表中节点的数量
-zlen：表示压缩列表结束，其值固定为0xFF
+zlend：表示压缩列表结束，其值固定为0xFF
 
 entry: 节点结构
 ————————————————————————————————————
@@ -29,5 +29,18 @@ contents：负责保存节点的值
 #define ZIPLIST_TAIL 1
 
 unsigned char *ziplistNew();
+unsigned char *ziplistMerge(unsigned char **first, unsigned char **second);
 unsigned char *ziplistPush(unsigned char *zl, unsigned char *s, unsigned int slen, int where);
+unsigned char *ziplistIndex(unsigned char *zl, int index);
+unsigned char *ziplistNext(unsigned char *zl, unsigned char *p);
+unsigned char *ziplistPrev(unsigned char *zl, unsigned char *p);
+unsigned int ziplistGet(unsigned char *p, unsigned char **sval, unsigned int *slen, long long *lval);
+unsigned char *ziplistInsert(unsigned char *zl, unsigned char *p, unsigned char *s, unsigned int slen);
+unsigned char *ziplistDelete(unsigned char *zl, unsigned char **p);
+unsigned char *ziplistDeleteRange(unsigned char *zl, int index, unsigned int num);
+unsigned int ziplistCompare(unsigned char *p, unsigned char *s, unsigned int slen);
+unsigned char *ziplistFind(unsigned char *p, unsigned char *vstr, unsigned int vlen, unsigned int skip);
+unsigned int ziplistLen(unsigned char *zl);
+unsigned int ziplistBlobLen(unsigned char *zl);
+
 #endif
