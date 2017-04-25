@@ -153,6 +153,7 @@
     <ClInclude Include="redisassert.h" />
     <ClInclude Include="sds.h" />
     <ClInclude Include="sdsalloc.h" />
+    <ClInclude Include="server.h" />
     <ClInclude Include="stdint.h" />
     <ClInclude Include="util.h" />
     <ClInclude Include="ziplist.h" />
@@ -165,7 +166,10 @@
     <ClCompile Include="dict.cpp" />
     <ClCompile Include="endianconv.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="object.cpp" />
     <ClCompile Include="sds.cpp" />
+    <ClCompile Include="server.cpp" />
+    <ClCompile Include="t_zset.cpp" />
     <ClCompile Include="util.cpp" />
     <ClCompile Include="ziplist.cpp" />
     <ClCompile Include="zmalloc.cpp" />
