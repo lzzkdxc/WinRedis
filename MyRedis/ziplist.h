@@ -1,28 +1,28 @@
-#ifndef __ZIPLIST_H
+ï»¿#ifndef __ZIPLIST_H
 #define __ZIPLIST_H
 
-/* Êý¾Ý½á¹¹
-¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª
+/* æ•°æ®ç»“æž„
+â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”
 zlbytes|zltail|zllen|entry1|...|entryN|zlend|
-¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª
+â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”
 ---ziplist header---|-----entries-----|-end-|
-¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª
+â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”
 
-zlbytes£º±íÊ¾Ñ¹ËõÁÐ±íÕ¼×ÜÄÚ´æµÄ×Ö½ÚÊý
-zltail£º±íÊ¾Ñ¹ËõÁÐ±íÍ·ºÍÎ²Ö®¼äµÄÆ«ÒÆÁ¿
-zllen£º±íÊ¾Ñ¹ËõÁÐ±íÖÐ½ÚµãµÄÊýÁ¿
-zlend£º±íÊ¾Ñ¹ËõÁÐ±í½áÊø£¬ÆäÖµ¹Ì¶¨Îª0xFF
+zlbytesï¼šè¡¨ç¤ºåŽ‹ç¼©åˆ—è¡¨å æ€»å†…å­˜çš„å­—èŠ‚æ•°
+zltailï¼šè¡¨ç¤ºåŽ‹ç¼©åˆ—è¡¨å¤´å’Œå°¾ä¹‹é—´çš„åç§»é‡
+zllenï¼šè¡¨ç¤ºåŽ‹ç¼©åˆ—è¡¨ä¸­èŠ‚ç‚¹çš„æ•°é‡
+zlendï¼šè¡¨ç¤ºåŽ‹ç¼©åˆ—è¡¨ç»“æŸï¼Œå…¶å€¼å›ºå®šä¸º0xFF
 
-entry: ½Úµã½á¹¹
-¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª
+entry: èŠ‚ç‚¹ç»“æž„
+â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”
 prev_entry_length|encoding|contents|
-¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª
+â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”
 
-prev_entry_length£º±àÂëÇ°ÖÃ½ÚµãµÄ³¤¶È£¬ÓÃÓÚ´ÓºóÍùÇ°±éÀú£¬
-				   Èç¹ûÇ°ÖÃ½ÚµãµÄ³¤¶ÈÐ¡ÓÚ254×Ö½Ú£¬²ÉÓÃ1¸ö×Ö½ÚÀ´±£´æ³¤¶È£¬
-				   ·´Ö®£¬ÔòÓÃ5¸ö×Ö½ÚÀ´±£´æ£¬ÆäÖÐµÚÒ»¸ö×Ö½Ú±»ÉèÖÃÎª0xFE(254),ºóÃæËÄ¸ö×Ö½ÚÔòÓÃÀ´´æ´¢Ç°ÖÃ½ÚµãµÄ³¤¶ÈÖµ
-encoding£º±àÂëÊôÐÔ
-contents£º¸ºÔð±£´æ½ÚµãµÄÖµ
+prev_entry_lengthï¼šç¼–ç å‰ç½®èŠ‚ç‚¹çš„é•¿åº¦ï¼Œç”¨äºŽä»ŽåŽå¾€å‰éåŽ†ï¼Œ
+				   å¦‚æžœå‰ç½®èŠ‚ç‚¹çš„é•¿åº¦å°äºŽ254å­—èŠ‚ï¼Œé‡‡ç”¨1ä¸ªå­—èŠ‚æ¥ä¿å­˜é•¿åº¦ï¼Œ
+				   åä¹‹ï¼Œåˆ™ç”¨5ä¸ªå­—èŠ‚æ¥ä¿å­˜ï¼Œå…¶ä¸­ç¬¬ä¸€ä¸ªå­—èŠ‚è¢«è®¾ç½®ä¸º0xFE(254),åŽé¢å››ä¸ªå­—èŠ‚åˆ™ç”¨æ¥å­˜å‚¨å‰ç½®èŠ‚ç‚¹çš„é•¿åº¦å€¼
+encodingï¼šç¼–ç å±žæ€§
+contentsï¼šè´Ÿè´£ä¿å­˜èŠ‚ç‚¹çš„å€¼
 */
 
 #define ZIPLIST_HEAD 0

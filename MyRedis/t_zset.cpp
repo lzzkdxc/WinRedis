@@ -1,7 +1,7 @@
-#include "server.h"
+ï»¿#include "server.h"
 #include <math.h>
 
-/* ´´½¨ÌøÔ¾±í½Úµã */
+/* åˆ›å»ºè·³è·ƒè¡¨èŠ‚ç‚¹ */
 zskiplistNode *zslCreateNode(int level, double score, robj *obj)
 {
 	zskiplistNode *zn = (zskiplistNode*)zmalloc(sizeof(zskiplistNode) + level * sizeof(zskiplistNode::zskiplistLevel));
@@ -10,7 +10,7 @@ zskiplistNode *zslCreateNode(int level, double score, robj *obj)
 	return zn;
 }
 
-/* ´´½¨ÌøÔ¾±í */
+/* åˆ›å»ºè·³è·ƒè¡¨ */
 zskiplist *zslCreate()
 {
 	int j;
@@ -19,7 +19,7 @@ zskiplist *zslCreate()
 	zsl = (zskiplist*)zmalloc(sizeof(*zsl));
 	zsl->level = 1;
 	zsl->length = 0;
-	// ´´½¨Ò»¸ö²ãÊýÎª32£¬·ÖÖµÎª0£¬³ÉÔ±¶ÔÏóÎªNULLµÄ±íÍ·½áµã
+	// åˆ›å»ºä¸€ä¸ªå±‚æ•°ä¸º32ï¼Œåˆ†å€¼ä¸º0ï¼Œæˆå‘˜å¯¹è±¡ä¸ºNULLçš„è¡¨å¤´ç»“ç‚¹
 	zsl->header = zslCreateNode(ZSKIPLIST_MAXLEVEL, 0, NULL);
 	for (j = 0; j < ZSKIPLIST_MAXLEVEL; j++)
 	{

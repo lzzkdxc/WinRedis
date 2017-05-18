@@ -1,4 +1,4 @@
-#ifndef __REDIS_UTIL_H
+﻿#ifndef __REDIS_UTIL_H
 #define __REDIS_UTIL_H
 
 #include <stdint.h>

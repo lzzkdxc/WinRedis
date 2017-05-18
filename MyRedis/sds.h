@@ -1,4 +1,4 @@
-#ifndef __SDS_H
+ï»¿#ifndef __SDS_H
 #define __SDS_H
 
 #define SDS_MAX_PREALLOC (1024*1024)
@@ -8,17 +8,17 @@
 #pragma warning(disable:4267)
 #pragma warning(disable:4244)
 /*
-¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª
+â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”
 |-----header----|------data------|
 ----------------------------------
 |len|alloc|flags|r|e|d|i|s|\0|...|
-¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª
+â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”â€”
 */
 
 typedef char* sds;
 
-#pragma pack(push, 1) //°ÑÔ­À´¶ÔÆë·½Ê½ÉèÖÃÑ¹Õ»£¬²¢ÉèĞÂµÄ¶ÔÆë·½Ê½ÉèÖÃÎªÒ»¸ö×Ö½Ú¶ÔÆë
-// sdshdr5 ÒÑ²»ÔÙÊ¹ÓÃ
+#pragma pack(push, 1) //æŠŠåŸæ¥å¯¹é½æ–¹å¼è®¾ç½®å‹æ ˆï¼Œå¹¶è®¾æ–°çš„å¯¹é½æ–¹å¼è®¾ç½®ä¸ºä¸€ä¸ªå­—èŠ‚å¯¹é½
+// sdshdr5 å·²ä¸å†ä½¿ç”¨
 typedef struct _sdshdr5
 {
 	unsigned char flags;
@@ -27,9 +27,9 @@ typedef struct _sdshdr5
 
 typedef struct _sdshdr8
 {
-	uint8_t len;			//±íÊ¾×Ö·û´®ÕæÕıµÄ³¤¶È£¬²»°üº¬¿ÕÖÕÖ¹×Ö·û
-	uint8_t alloc;			//±íÊ¾×Ö·û´®µÄ×î´óÈİÁ¿£¬²»°üº¬HeaderºÍ×îºóµÄ¿ÕÖÕÖ¹×Ö·û
-	unsigned char flags;	//±íÊ¾headerµÄÀàĞÍ
+	uint8_t len;			//è¡¨ç¤ºå­—ç¬¦ä¸²çœŸæ­£çš„é•¿åº¦ï¼Œä¸åŒ…å«ç©ºç»ˆæ­¢å­—ç¬¦
+	uint8_t alloc;			//è¡¨ç¤ºå­—ç¬¦ä¸²çš„æœ€å¤§å®¹é‡ï¼Œä¸åŒ…å«Headerå’Œæœ€åçš„ç©ºç»ˆæ­¢å­—ç¬¦
+	unsigned char flags;	//è¡¨ç¤ºheaderçš„ç±»å‹
 	char buf[1];
 }sdshdr8;
 
@@ -57,20 +57,20 @@ typedef struct _sdshdr64
 	char buf[1];
 }sdshdr64;
 
-#pragma pack(pop)	// »Ö¸´¶ÔÆë×´Ì¬
+#pragma pack(pop)	// æ¢å¤å¯¹é½çŠ¶æ€
 
-//5ÖÖheaderÀàĞÍ
+//5ç§headerç±»å‹
 #define SDS_TYPE_5	0
 #define SDS_TYPE_8	1
 #define SDS_TYPE_16 2
 #define SDS_TYPE_32 3
 #define SDS_TYPE_64 4
-#define SDS_TYPE_MASK 7		//ÀàĞÍÑÚÂë
+#define SDS_TYPE_MASK 7		//ç±»å‹æ©ç 
 #define SDS_TYPE_BITS 3
-//##ÊÇ½«Á½¸ö·ûºÅÁ¬½Ó³ÉÒ»¸ö£¬ÈçsdshdrºÍ8£¨TÎª8£©ºÏ³Ésdshdr8
-#define SDS_HDR_VAR(T, s) sdshdr##T *sh = (sdshdr##T*)((s) - (sizeof(sdshdr##T))); // »ñÈ¡headerÍ·Ö¸Õë
-#define SDS_HDR(T, s) ((sdshdr##T *)((s) - (sizeof(sdshdr##T)))) // »ñÈ¡headerÍ·Ö¸Õë
-#define SDS_TYPE_5_LEN(f) ((f) >> SDS_TYPE_BITS) // »ñÈ¡sdshdr5µÄ³¤¶È
+//##æ˜¯å°†ä¸¤ä¸ªç¬¦å·è¿æ¥æˆä¸€ä¸ªï¼Œå¦‚sdshdrå’Œ8ï¼ˆTä¸º8ï¼‰åˆæˆsdshdr8
+#define SDS_HDR_VAR(T, s) sdshdr##T *sh = (sdshdr##T*)((s) - (sizeof(sdshdr##T))); // è·å–headerå¤´æŒ‡é’ˆ
+#define SDS_HDR(T, s) ((sdshdr##T *)((s) - (sizeof(sdshdr##T)))) // è·å–headerå¤´æŒ‡é’ˆ
+#define SDS_TYPE_5_LEN(f) ((f) >> SDS_TYPE_BITS) // è·å–sdshdr5çš„é•¿åº¦
 
 static inline size_t sdslen(const sds s)
 {
@@ -91,7 +91,7 @@ static inline size_t sdslen(const sds s)
 	return 0;
 }
 
-// Ê£Óà¿Õ¼ä
+// å‰©ä½™ç©ºé—´
 static inline size_t sdsavail(const sds s)
 {
 	unsigned char flags = s[-1];
@@ -123,7 +123,7 @@ static inline size_t sdsavail(const sds s)
 	return 0;
 }
 
-// ¸üĞÂsdsµÄ³¤¶È
+// æ›´æ–°sdsçš„é•¿åº¦
 static inline void sdssetlen(sds s, size_t newlen)
 {
 	unsigned char flags = s[-1];
@@ -131,7 +131,7 @@ static inline void sdssetlen(sds s, size_t newlen)
 	{
 		case SDS_TYPE_5:
 		{
-			// Ó¦¸Ã²»»á½øÈëÕâÀï
+			// åº”è¯¥ä¸ä¼šè¿›å…¥è¿™é‡Œ
 			unsigned char *fp = ((unsigned char*)s) - 1;
 			*fp = SDS_TYPE_5 | (newlen << SDS_TYPE_BITS);
 			break;
@@ -151,7 +151,7 @@ static inline void sdssetlen(sds s, size_t newlen)
 	}
 }
 
-// »ñÈ¡sdsµÄÈİÁ¿ sdsalloc() = sdsavail() + sdslen()
+// è·å–sdsçš„å®¹é‡ sdsalloc() = sdsavail() + sdslen()
 static inline size_t sdsalloc(const sds s)
 {
 	unsigned char flags = s[-1];
@@ -171,7 +171,7 @@ static inline size_t sdsalloc(const sds s)
 	return 0;
 }
 
-// ¸üĞÂsdsµÄÈİÁ¿
+// æ›´æ–°sdsçš„å®¹é‡
 static inline void sdssetalloc(sds s, size_t newlen)
 {
 	unsigned char flags = s[-1];

@@ -1,4 +1,4 @@
-#ifndef __STDINT_H
+﻿#ifndef __STDINT_H
 #define __STDINT_H
 
 #if (_MSC_VER < 1300)

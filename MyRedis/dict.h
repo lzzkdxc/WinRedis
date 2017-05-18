@@ -1,4 +1,4 @@
-#ifndef __DICT_H
+ï»¿#ifndef __DICT_H
 #define __DICT_H
 
 #include <stdint.h>
@@ -6,74 +6,74 @@
 #define DICT_OK 0
 #define DICT_ERR 1
 
-// ¹þÏ£±í½Úµã
+// å“ˆå¸Œè¡¨èŠ‚ç‚¹
 typedef struct _dictEntry 
 {
-	void *key;	// ¼ü
+	void *key;	// é”®
 	union {
 		void *val;
 		uint64_t u64;
 		int64_t s64;
 		double d;
-	} v;	// Öµ
-	struct _dictEntry *next; // Ö¸ÏòÏÂÒ»¸ö¹þÏ£½Úµã£¬Ê¹ÓÃÀ­Á´·¨½â¾ö¹þÏ£³åÍ»
+	} v;	// å€¼
+	struct _dictEntry *next; // æŒ‡å‘ä¸‹ä¸€ä¸ªå“ˆå¸ŒèŠ‚ç‚¹ï¼Œä½¿ç”¨æ‹‰é“¾æ³•è§£å†³å“ˆå¸Œå†²çª
 } dictEntry;
 
-// ×ÖµäÀàÐÍ
+// å­—å…¸ç±»åž‹
 typedef struct _dictType 
 {
-	unsigned int (*hashFunction)(const void *key);		// ¼ÆËã¹þÏ£Öµ
-	void *(*keyDup)(void *privdata, const void *key);	// ¸´ÖÆ¼ü
-	void *(*valDup)(void *privdata, const void *obj);	// ¸´ÖÆÖµ
-	int (*keyCompare)(void *privdata, const void *key1, const void *key2);	// ±È½Ï¼ü
-	void (*keyDestructor)(void *privdata, void *key);	// ´Ý»Ù¼ü
-	void (*valDestructor)(void *privdata, void *obj);	// ´Ý»ÙÖµ
+	unsigned int (*hashFunction)(const void *key);		// è®¡ç®—å“ˆå¸Œå€¼
+	void *(*keyDup)(void *privdata, const void *key);	// å¤åˆ¶é”®
+	void *(*valDup)(void *privdata, const void *obj);	// å¤åˆ¶å€¼
+	int (*keyCompare)(void *privdata, const void *key1, const void *key2);	// æ¯”è¾ƒé”®
+	void (*keyDestructor)(void *privdata, void *key);	// æ‘§æ¯é”®
+	void (*valDestructor)(void *privdata, void *obj);	// æ‘§æ¯å€¼
 } dictType;
 
-// ¹þÏ£±í
+// å“ˆå¸Œè¡¨
 typedef struct _dictht 
 {
-	dictEntry **table;		// ¹þÏ£±íÊý×é
-	unsigned long size;		// ¹þÏ£±í´óÐ¡
-	unsigned long sizemask;	// ¹þÏ£±í´óÐ¡ÑÚÂë£¬ÓÃÓÚ¼ÆËãË÷ÒýÖµ
-	unsigned long used;		// ÒÑÓÐ½ÚµãµÄÊýÁ¿
+	dictEntry **table;		// å“ˆå¸Œè¡¨æ•°ç»„
+	unsigned long size;		// å“ˆå¸Œè¡¨å¤§å°
+	unsigned long sizemask;	// å“ˆå¸Œè¡¨å¤§å°æŽ©ç ï¼Œç”¨äºŽè®¡ç®—ç´¢å¼•å€¼
+	unsigned long used;		// å·²æœ‰èŠ‚ç‚¹çš„æ•°é‡
 } dictht;
 
-// ×Öµä
+// å­—å…¸
 typedef struct _dict 
 {
-	dictType *type;	// ×ÖµäÀàÐÍ£¬±£´æÒ»Ð©ÓÃÓÚ²Ù×÷ÌØ¶¨ÀàÐÍ¼üÖµ¶ÔµÄº¯Êý
-	void *privdata;	// Ë½ÓÐÊý¾Ý£¬±£´æÐèÒª´«¸øÄÇÐ©ÀàÐÍÌØ¶¨º¯ÊýµÄ¿ÉÑ¡Êý¾Ý
-	dictht ht[2];	// Ò»¸ö×Öµä°üÀ¨Á½¸ö¹þÏ£±í
-	long rehashidx;	// rehashË÷Òý£¬²»½øÐÐrehashÊ±ÖµÎª-1
-	int iterators;	// µ±Ç°ÕýÔÚÊ¹ÓÃµÄµü´úÆ÷ÊýÁ¿
+	dictType *type;	// å­—å…¸ç±»åž‹ï¼Œä¿å­˜ä¸€äº›ç”¨äºŽæ“ä½œç‰¹å®šç±»åž‹é”®å€¼å¯¹çš„å‡½æ•°
+	void *privdata;	// ç§æœ‰æ•°æ®ï¼Œä¿å­˜éœ€è¦ä¼ ç»™é‚£äº›ç±»åž‹ç‰¹å®šå‡½æ•°çš„å¯é€‰æ•°æ®
+	dictht ht[2];	// ä¸€ä¸ªå­—å…¸åŒ…æ‹¬ä¸¤ä¸ªå“ˆå¸Œè¡¨
+	long rehashidx;	// rehashç´¢å¼•ï¼Œä¸è¿›è¡Œrehashæ—¶å€¼ä¸º-1
+	int iterators;	// å½“å‰æ­£åœ¨ä½¿ç”¨çš„è¿­ä»£å™¨æ•°é‡
 } dict;
 
-// ×Öµäµü´úÆ÷
-/* Èç¹ûsafeÖµÎª1£¬ÒâÎ¶×ÅÔÚµü´ú¹ý³ÌÖÐ¿ÉÒÔ°²È«µ÷ÓÃ
-* dictAdd, dictFind¼°ÆäËûÒ»Ð©²Ù×÷·½·¨,
-* ·ñÔòÖ»ÓÐµ÷ÓÃdictFind()·½·¨ÊÇ°²È«µÄ */
+// å­—å…¸è¿­ä»£å™¨
+/* å¦‚æžœsafeå€¼ä¸º1ï¼Œæ„å‘³ç€åœ¨è¿­ä»£è¿‡ç¨‹ä¸­å¯ä»¥å®‰å…¨è°ƒç”¨
+* dictAdd, dictFindåŠå…¶ä»–ä¸€äº›æ“ä½œæ–¹æ³•,
+* å¦åˆ™åªæœ‰è°ƒç”¨dictFind()æ–¹æ³•æ˜¯å®‰å…¨çš„ */
 typedef struct _dictIterator 
 {
-	dict *d;	// µ±Ç°Ê¹ÓÃµÄ×Öµä
-	long index;	// µ±Ç°µü´úÆ÷ÏÂ±ê
-	int table, safe; //tableÖ¸Ê¾×ÖµäÖÐÉ¢ÁÐ±íÏÂ±ê£¬safeÖ¸Ã÷¸Ãµü´úÆ÷ÊÇ·ñ°²È«
-	dictEntry *entry, nextEntry; // ¼üÖµ¶Ô½ÚµãÖ¸Õë
+	dict *d;	// å½“å‰ä½¿ç”¨çš„å­—å…¸
+	long index;	// å½“å‰è¿­ä»£å™¨ä¸‹æ ‡
+	int table, safe; //tableæŒ‡ç¤ºå­—å…¸ä¸­æ•£åˆ—è¡¨ä¸‹æ ‡ï¼ŒsafeæŒ‡æ˜Žè¯¥è¿­ä»£å™¨æ˜¯å¦å®‰å…¨
+	dictEntry *entry, nextEntry; // é”®å€¼å¯¹èŠ‚ç‚¹æŒ‡é’ˆ
 	long long fingerprint; /* unsafe iterator fingerprint for misuse detection. */
 } dictIterator;
 
-// ±éÀú»Øµ÷º¯Êý
+// éåŽ†å›žè°ƒå‡½æ•°
 typedef void (dictScanFunction)(void *privdata, const dictEntry *de);
 
-// Ã¿¸öhash tableµÄ³õÊ¼³¤¶È
+// æ¯ä¸ªhash tableçš„åˆå§‹é•¿åº¦
 #define DICT_HT_INITIAL_SIZE	4
 
-// ÊÍ·ÅÖµ
+// é‡Šæ”¾å€¼
 #define dictFreeVal(d, entry) \
 	if ((d)->type->valDestructor) \
 		((d)->type->valDestructor((d)->privdata, (entry)->v.val))
 
-// ¸üÐÂ½ÚµãµÄÖµ
+// æ›´æ–°èŠ‚ç‚¹çš„å€¼
 #define dictSetVal(d, entry, _val_) do { \
 	if ((d)->type->valDup) \
 		entry->v.val = (d)->type->valDup((d)->privdata, _val_); \
@@ -81,12 +81,12 @@ typedef void (dictScanFunction)(void *privdata, const dictEntry *de);
 		entry->v.val = (_val_); \
 } while (0)
 
-// ÊÍ·Å¼ü
+// é‡Šæ”¾é”®
 #define dictFreeKey(d, entry) \
 	if ((d)->type->keyDestructor) \
 		((d)->type->keyDestructor((d)->privdata, (entry)->key))
 
-// ¸üÐÂ½ÚµãµÄ¼ü
+// æ›´æ–°èŠ‚ç‚¹çš„é”®
 #define dictSetKey(d, entry, _key_) do { \
 	if ((d)->type->keyDup) \
 		entry->key = (d)->type->keyDup((d)->privdata, _key_); \
@@ -94,12 +94,12 @@ typedef void (dictScanFunction)(void *privdata, const dictEntry *de);
 		entry->key = (_key_); \
 } while (0)
 
-// ±È½Ï¼ü
+// æ¯”è¾ƒé”®
 #define dictCompareKeys(d, key1, key2) \
 	(((d)->type->keyCompare) ? \
 		(d)->type->keyCompare((d)->privdata, key1, key2) : (key1) == (key2))
 
-#define dictHashKey(d, key) (d)->type->hashFunction(key) //¼ÆËã¹þÏ£Öµ
+#define dictHashKey(d, key) (d)->type->hashFunction(key) //è®¡ç®—å“ˆå¸Œå€¼
 #define dictGetKey(he) ((he)->key)
 #define dictGetVal(he) ((he)->v.val)
 #define dictSize(d) ((d)->ht[0].used + (d)->ht[1].used)

@@ -1,4 +1,4 @@
-/*·ÅÆúÌæ»»assert.h£¬ÔÚRedisÈÕÖ¾ÖĞ´òÓ¡¶ÑÕ»¸ú×Ù*/
+ï»¿/*æ”¾å¼ƒæ›¿æ¢assert.hï¼Œåœ¨Redisæ—¥å¿—ä¸­æ‰“å°å †æ ˆè·Ÿè¸ª*/
 
 #ifndef __REDISASSERT_H
 #define __REDISASSERT_H

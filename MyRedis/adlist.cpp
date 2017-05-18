@@ -1,15 +1,15 @@
-#include "adlist.h"
+ï»¿#include "adlist.h"
 #include "zmalloc.h"
 #include <assert.h>
 
-// ´´½¨Ò»¸ö¿ÕµÄÁ´±í
+// åˆ›å»ºä¸€ä¸ªç©ºçš„é“¾è¡¨
 list *listCreate(void)
 {
 	list *newlist;
-	if ((newlist = (list*)zmalloc(sizeof(list))) == NULL) // ÉêÇëÄÚ´æ
+	if ((newlist = (list*)zmalloc(sizeof(list))) == NULL) // ç”³è¯·å†…å­˜
 		return NULL;
 
-	// ³õÊ¼»¯¸÷¸ö²ÎÊý
+	// åˆå§‹åŒ–å„ä¸ªå‚æ•°
 	newlist->head = newlist->tail = NULL;
 	newlist->len = 0;
 	newlist->dup = NULL;
@@ -18,7 +18,7 @@ list *listCreate(void)
 	return newlist;
 }
 
-// ÊÍ·ÅÕû¸öÁ´±í
+// é‡Šæ”¾æ•´ä¸ªé“¾è¡¨
 void listRelease(list *l)
 {
 	if (l == NULL)
@@ -31,7 +31,7 @@ void listRelease(list *l)
 	while (len--)
 	{
 		next = current->next;
-		// Èç¹û×Ô¶¨ÒåÁËÊÍ·Åº¯Êý£¬Ôòµ÷ÓÃ
+		// å¦‚æžœè‡ªå®šä¹‰äº†é‡Šæ”¾å‡½æ•°ï¼Œåˆ™è°ƒç”¨
 		if (l->free) l->free(current->value);
 		zfree(current);
 		current = next;
@@ -39,7 +39,7 @@ void listRelease(list *l)
 	zfree(l);
 }
 
-// ÏòÍ·²¿²åÈëÒ»¸ö½Úµã
+// å‘å¤´éƒ¨æ’å…¥ä¸€ä¸ªèŠ‚ç‚¹
 list *listAddNodeHead(list *l, void *value)
 {
 	listNode *node;
@@ -47,7 +47,7 @@ list *listAddNodeHead(list *l, void *value)
 		return NULL;
 
 	node->value = value;
-	if (l->len == 0)  // ¿ÕÁ´±í
+	if (l->len == 0)  // ç©ºé“¾è¡¨
 	{
 		l->head = l->tail = node;
 		node->prev = node->next = NULL;
@@ -63,7 +63,7 @@ list *listAddNodeHead(list *l, void *value)
 	return l;
 }
 
-// ÏòÎ²²¿²åÈëÒ»¸ö½Úµã
+// å‘å°¾éƒ¨æ’å…¥ä¸€ä¸ªèŠ‚ç‚¹
 list *listAddNodeTail(list *l, void *value)
 {
 	listNode *node;
@@ -71,7 +71,7 @@ list *listAddNodeTail(list *l, void *value)
 		return NULL;
 
 	node->value = value;
-	if (l->len == 0)  // ¿ÕÁ´±í
+	if (l->len == 0)  // ç©ºé“¾è¡¨
 	{
 		l->head = l->tail = node;
 		node->prev = node->next = NULL;
@@ -87,10 +87,10 @@ list *listAddNodeTail(list *l, void *value)
 	return l;
 }
 
-// ÈÎÒâÎ»ÖÃ²åÈë½Úµã
-// ÆäÖÐ£¬old_nodeÎª²åÈëÎ»ÖÃ
-//      valueÎª²åÈë½ÚµãµÄÖµ
-//      afterÎª0Ê±±íÊ¾²åÔÚold_nodeÇ°Ãæ£¬Îª1Ê±±íÊ¾²åÔÚold_nodeºóÃæ
+// ä»»æ„ä½ç½®æ’å…¥èŠ‚ç‚¹
+// å…¶ä¸­ï¼Œold_nodeä¸ºæ’å…¥ä½ç½®
+//      valueä¸ºæ’å…¥èŠ‚ç‚¹çš„å€¼
+//      afterä¸º0æ—¶è¡¨ç¤ºæ’åœ¨old_nodeå‰é¢ï¼Œä¸º1æ—¶è¡¨ç¤ºæ’åœ¨old_nodeåŽé¢
 list *listInsertNode(list *l, listNode *old_node, void *value, int after)
 {
 	listNode *node;
@@ -121,18 +121,18 @@ list *listInsertNode(list *l, listNode *old_node, void *value, int after)
 	return l;
 }
 
-// É¾³ý½Úµã
+// åˆ é™¤èŠ‚ç‚¹
 void listDelNode(list *l, listNode *node)
 {
 	assert(node != NULL);
 	
 	if (node->prev != NULL)
 		node->prev->next = node->next;
-	else // É¾³ý½ÚµãÎªÍ·½ÚµãÐèÒª¸Ä±äheadµÄÖ¸Ïò
+	else // åˆ é™¤èŠ‚ç‚¹ä¸ºå¤´èŠ‚ç‚¹éœ€è¦æ”¹å˜headçš„æŒ‡å‘
 		l->head = node->next;
 	if (node->next != NULL)
 		node->next->prev = node->prev;
-	else // É¾³ý½ÚµãÎªÎ²½ÚµãÐèÒª¸Ä±ätailµÄÖ¸Ïò
+	else // åˆ é™¤èŠ‚ç‚¹ä¸ºå°¾èŠ‚ç‚¹éœ€è¦æ”¹å˜tailçš„æŒ‡å‘
 		l->tail = node->prev;
 
 	if (l->free != NULL) l->free(node->value);
@@ -140,7 +140,7 @@ void listDelNode(list *l, listNode *node)
 	l->len--;
 }
 
-// »ñÈ¡µü´úÆ÷
+// èŽ·å–è¿­ä»£å™¨
 listIter *listGetIterator(list *l, int direction)
 {
 	listIter *iter;
@@ -155,27 +155,27 @@ listIter *listGetIterator(list *l, int direction)
 	return iter;
 }
 
-// ÊÍ·Åµü´úÆ÷
+// é‡Šæ”¾è¿­ä»£å™¨
 void listReleaseIterator(listIter *iter)
 {
 	zfree(iter);
 }
 
-// ÖØÖÃÎªÕýÏòµü´úÆ÷
+// é‡ç½®ä¸ºæ­£å‘è¿­ä»£å™¨
 void listRewind(list *l, listIter *iter)
 {
 	iter->next = l->head;
 	iter->direction = AL_START_HEAD;
 }
 
-// ÖØÖÃÎªÄæÏòµü´úÆ÷
+// é‡ç½®ä¸ºé€†å‘è¿­ä»£å™¨
 void listRewindTail(list *l, listIter *iter)
 {
 	iter->next = l->tail;
 	iter->direction = AL_START_TAIL;
 }
 
-// »ñÈ¡ÏÂÒ»¸öµü´úÆ÷
+// èŽ·å–ä¸‹ä¸€ä¸ªè¿­ä»£å™¨
 listNode *listNext(listIter *iter)
 {
 	listNode *current = iter->next;
@@ -186,7 +186,7 @@ listNode *listNext(listIter *iter)
 	return current;
 }
 
-// ¸´ÖÆÕû¸öÁ´±í
+// å¤åˆ¶æ•´ä¸ªé“¾è¡¨
 list *listDup(list *orig)
 {
 	list *copylist;
@@ -195,7 +195,7 @@ list *listDup(list *orig)
 
 	if ((copylist = listCreate()) == NULL)
 		return NULL;
-	// ¸´ÖÆ½ÚµãÖµ²Ù×÷º¯Êý
+	// å¤åˆ¶èŠ‚ç‚¹å€¼æ“ä½œå‡½æ•°
 	copylist->dup = orig->dup;
 	copylist->free = orig->free;
 	copylist->match = orig->match;
@@ -204,8 +204,8 @@ list *listDup(list *orig)
 	while ((node = listNext(&iter)) != NULL)
 	{
 		void *value;
-		// ¸´ÖÆ½Úµã
-		// Èç¹û¶¨ÒåÁËdupº¯Êý£¬Ôò°´ÕÕdupº¯ÊýÀ´¸´ÖÆ½ÚµãÖµ
+		// å¤åˆ¶èŠ‚ç‚¹
+		// å¦‚æžœå®šä¹‰äº†dupå‡½æ•°ï¼Œåˆ™æŒ‰ç…§dupå‡½æ•°æ¥å¤åˆ¶èŠ‚ç‚¹å€¼
 		if (copylist->dup != NULL)
 		{
 			value = copylist->dup(node->value);
@@ -219,7 +219,7 @@ list *listDup(list *orig)
 		{
 			value = node->value;
 		}
-		// ÒÀ´ÎÏòÎ²²¿Ìí¼Ó½Úµã
+		// ä¾æ¬¡å‘å°¾éƒ¨æ·»åŠ èŠ‚ç‚¹
 		if (listAddNodeTail(copylist, value) == NULL)
 		{
 			listRelease(copylist);
@@ -229,7 +229,7 @@ list *listDup(list *orig)
 	return copylist;
 }
 
-// ¸ù¾Ý½ÚµãÖµ²éÕÒ½Úµã
+// æ ¹æ®èŠ‚ç‚¹å€¼æŸ¥æ‰¾èŠ‚ç‚¹
 listNode *listSearchKey(list *l, void *key)
 {
 	listIter iter;
@@ -247,7 +247,7 @@ listNode *listSearchKey(list *l, void *key)
 	return NULL;
 }
 
-// ¸ù¾ÝÐòºÅÀ´²éÕÒ½Úµã
+// æ ¹æ®åºå·æ¥æŸ¥æ‰¾èŠ‚ç‚¹
 listNode *listIndex(list *l, long index)
 {
 	listNode *node;
@@ -266,18 +266,18 @@ listNode *listIndex(list *l, long index)
 	return node;
 }
 
-// Á´±íÐý×ª
-// ½«±íÎ²½ÚµãÒÆ³ý£¬È»ºó²åÈëµ½±íÍ·£¬³ÉÎªÐÂµÄ±íÍ·
+// é“¾è¡¨æ—‹è½¬
+// å°†è¡¨å°¾èŠ‚ç‚¹ç§»é™¤ï¼Œç„¶åŽæ’å…¥åˆ°è¡¨å¤´ï¼Œæˆä¸ºæ–°çš„è¡¨å¤´
 void listRotate(list *l)
 {
 	listNode *tail = l->tail;
 
 	if (listLength(l) <= 1) return;
 
-	// È¡³öÎ²½Úµã
+	// å–å‡ºå°¾èŠ‚ç‚¹
 	l->tail = tail->prev;
 	l->tail->next = NULL;
-	// ½«ÆäÒÆ¶¯µ½±íÍ·²¢³ÉÎªÐÂµÄ±íÍ·Ö¸Õë
+	// å°†å…¶ç§»åŠ¨åˆ°è¡¨å¤´å¹¶æˆä¸ºæ–°çš„è¡¨å¤´æŒ‡é’ˆ
 	l->head->prev = tail;
 	tail->prev = NULL;
 	tail->next = l->head;

@@ -1,4 +1,4 @@
-#ifndef __ENDIANCONV_H
+﻿#ifndef __ENDIANCONV_H
 #define __ENDIANCONV_H
 
 #include "config.h"

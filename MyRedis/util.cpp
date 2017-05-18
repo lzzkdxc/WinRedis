@@ -1,21 +1,20 @@
-#include <limits.h>
-
+ï»¿#include <limits.h>
 
 #include "util.h"
 
-/* string ×ª³É long long, ³É¹¦·µ»Ø1£¬²¢´æÈëvalue£¬Ê§°Ü·µ»Ø0*/
+/* string è½¬æˆ long long, æˆåŠŸè¿”å›1ï¼Œå¹¶å­˜å…¥valueï¼Œå¤±è´¥è¿”å›0*/
 int string2ll(const char *s, size_t slen, long long *value)
 {
 	const char *p = s;
 	size_t plen = 0;
-	int negative = 0; //ÊÇ·ñÎª¸ºÊı 0:ÕıÊı 1:¸ºÊı
+	int negative = 0; //æ˜¯å¦ä¸ºè´Ÿæ•° 0:æ­£æ•° 1:è´Ÿæ•°
 	unsigned long long v;
 
-	// ×Ö·û´®Îª¿Õ
+	// å­—ç¬¦ä¸²ä¸ºç©º
 	if (plen == slen)
 		return 0;
 	
-	// ÌØÊâÇé¿ö:Ö»ÓĞÒ»Î»ÇÒÊÇ0
+	// ç‰¹æ®Šæƒ…å†µ:åªæœ‰ä¸€ä½ä¸”æ˜¯0
 	if (slen == 1 && p[0] == '0')
 	{
 		if (value != NULL) *value = 0;
@@ -28,12 +27,12 @@ int string2ll(const char *s, size_t slen, long long *value)
 		p++;
 		plen++;
 
-		// Ö»ÓĞÒ»¸ö¸ººÅ
+		// åªæœ‰ä¸€ä¸ªè´Ÿå·
 		if (plen == slen)
 			return 0;
 	}
 
-	/* ³ıÁË¸ººÅÍâ£¬Ê×Î»±ØĞëÎª1-9£¬·ñÔò×ª»»Ê§°Ü*/
+	/* é™¤äº†è´Ÿå·å¤–ï¼Œé¦–ä½å¿…é¡»ä¸º1-9ï¼Œå¦åˆ™è½¬æ¢å¤±è´¥*/
 	if (p[0] >= '1' && p[0] <= '9')
 	{
 		v = p[0] - '0';
@@ -52,11 +51,11 @@ int string2ll(const char *s, size_t slen, long long *value)
 
 	while (plen < slen && p[0] >= '0' && p[0] <= '9')
 	{
-		if (v > (ULLONG_MAX / 10)) /* Òç³ö */
+		if (v > (ULLONG_MAX / 10)) /* æº¢å‡º */
 			return 0;
 		v *= 10;
 
-		if (v > (ULLONG_MAX - (p[0] - '0'))) /* Òç³ö */
+		if (v > (ULLONG_MAX - (p[0] - '0'))) /* æº¢å‡º */
 			return 0;
 		v += p[0] - '0';
 
@@ -64,7 +63,7 @@ int string2ll(const char *s, size_t slen, long long *value)
 		plen++;
 	}
 
-	/* Èç¹û²»ÊÇËùÓĞµÄÎ»Êı¶¼±»Ê¹ÓÃ£¬ÔòÊ§°Ü */
+	/* å¦‚æœä¸æ˜¯æ‰€æœ‰çš„ä½æ•°éƒ½è¢«ä½¿ç”¨ï¼Œåˆ™å¤±è´¥ */
 	if (plen < slen)
 		return 0;
 

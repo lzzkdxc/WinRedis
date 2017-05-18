@@ -1,4 +1,4 @@
-#include "server.h"
+ï»¿#include "server.h"
 #include <math.h>
 #include <ctype.h>
 
@@ -114,19 +114,19 @@ int compareStringObjectsWithFlags(robj *a, robj *b, int flags)
 	return 0;
 }
 
-/* Ê¹ÓÃ¶þ½øÖÆ½øÐÐ±È½Ï */
+/* ä½¿ç”¨äºŒè¿›åˆ¶è¿›è¡Œæ¯”è¾ƒ */
 int compareStringObjects(robj *a, robj *b)
 {
 	return compareStringObjectsWithFlags(a, b, REDIS_COMPARE_BINARY);
 }
 
-/* Ê¹ÓÃÅÅÐò¹æÔò½øÐÐ±È½Ï */
+/* ä½¿ç”¨æŽ’åºè§„åˆ™è¿›è¡Œæ¯”è¾ƒ */
 int collateStringObjects(robj *a, robj *b)
 {
 	return compareStringObjectsWithFlags(a, b, REDIS_COMPARE_COLL);
 }
 
-/* Èç¹ûÁ½¸ö¶ÔÏó´Ó×Ö·û´®±È½ÏµÄ½Ç¶ÈÏàÍ¬·µ»Ø1£¬·ñÔò·µ»Ø0 */
+/* å¦‚æžœä¸¤ä¸ªå¯¹è±¡ä»Žå­—ç¬¦ä¸²æ¯”è¾ƒçš„è§’åº¦ç›¸åŒè¿”å›ž1ï¼Œå¦åˆ™è¿”å›ž0 */
 int equalStringObjects(robj *a, robj *b)
 {
 	if (a->encoding == OBJ_ENCODING_INT && b->encoding == OBJ_ENCODING_INT)

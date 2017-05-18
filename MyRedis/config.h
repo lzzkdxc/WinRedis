@@ -1,4 +1,4 @@
-#ifndef __CONFIG_H
+﻿#ifndef __CONFIG_H
 #define __CONFIG_H
 
 #include <sys/types.h> /* This will likely define BYTE_ORDER */

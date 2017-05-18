@@ -1,10 +1,10 @@
-#include <stdio.h>
+ï»¿#include <stdio.h>
 #include <string.h>
 #include "sds.h"
 #include "sdsalloc.h"
 
 
-// µÃµ½sdsµÄheaderµÄ´óĞ¡
+// å¾—åˆ°sdsçš„headerçš„å¤§å°
 static inline int sdsHdrSize(char type)
 {
 	switch (type&SDS_TYPE_MASK)
@@ -23,7 +23,7 @@ static inline int sdsHdrSize(char type)
 	return 0;
 }
 
-// ¸ù¾İ×Ö·û´®³¤¶ÈÅĞ¶ÏheaderÀàĞÍ
+// æ ¹æ®å­—ç¬¦ä¸²é•¿åº¦åˆ¤æ–­headerç±»å‹
 static inline char sdsReqType(size_t string_size)
 {
 	if (string_size < 1 << 5)
@@ -37,22 +37,22 @@ static inline char sdsReqType(size_t string_size)
 	return SDS_TYPE_64;
 }
 
-// ÉêÇëÒ»Æ¬Á¬ĞøµÄÄÚ´æ¿Õ¼ä
+// ç”³è¯·ä¸€ç‰‡è¿ç»­çš„å†…å­˜ç©ºé—´
 sds sdsnewlen(const void *init, size_t initlen)
 {
 	void *sh;
 	sds s;
 	char type = sdsReqType(initlen);
-	// ¿ÕµÄ×Ö·û´®Í¨³£±»´´½¨³Étype 8£¬ÒòÎªtype 5ÒÑ¾­²»ÊµÓÃÁË¡£
+	// ç©ºçš„å­—ç¬¦ä¸²é€šå¸¸è¢«åˆ›å»ºæˆtype 8ï¼Œå› ä¸ºtype 5å·²ç»ä¸å®ç”¨äº†ã€‚
 	if (type == SDS_TYPE_5 && initlen == 0) type = SDS_TYPE_8;
 	int hdrlen = sdsHdrSize(type);
-	unsigned char *fp; // flags×Ö¶ÎµÄÖ¸Õë
+	unsigned char *fp; // flagså­—æ®µçš„æŒ‡é’ˆ
 
 	sh = s_malloc(hdrlen + initlen + 1);
 	if (!init)
 		memset(sh, 0, hdrlen + initlen + 1);
 	if (sh == NULL) return NULL;
-	// sÎªÊı¾İ²¿·ÖµÄÆğÊ¼Ö¸Õë
+	// sä¸ºæ•°æ®éƒ¨åˆ†çš„èµ·å§‹æŒ‡é’ˆ
 	s = (char*)sh + hdrlen;
 	fp = ((unsigned char *)s) - 1;
 	switch (type)
@@ -101,50 +101,50 @@ sds sdsnewlen(const void *init, size_t initlen)
 	return s;
 }
 
-// ´´½¨Ò»¸ö¿ÕµÄ×Ö·û´®
+// åˆ›å»ºä¸€ä¸ªç©ºçš„å­—ç¬¦ä¸²
 sds sdsempty()
 {
 	return sdsnewlen("", 0);
 }
 
-// ¸´ÖÆ×Ö·û´®²¢·µ»ØÒ»¸öĞÂµÄ×Ö·û´®
+// å¤åˆ¶å­—ç¬¦ä¸²å¹¶è¿”å›ä¸€ä¸ªæ–°çš„å­—ç¬¦ä¸²
 sds sdsnew(const char *init)
 {
 	size_t initlen = (init == NULL) ? 0 : strlen(init);
 	return sdsnewlen(init, initlen);
 }
 
-// ¸´ÖÆ×Ö·û´®
+// å¤åˆ¶å­—ç¬¦ä¸²
 sds sdsdup(const sds s)
 {
 	return sdsnewlen(s, sizeof(s));
 }
 
-// ÊÍ·ÅÄÚ´æ
+// é‡Šæ”¾å†…å­˜
 void sdsfree(sds s)
 {
 	if (s == NULL) return;
 	s_free((char*)s - sdsHdrSize(s[-1]));
 }
 
-// ÔÚÔ­ÓĞµÄ×Ö·û´®ÖĞÈ¡µÃ¸ü´óµÄ¿Õ¼ä£¬²¢·µ»ØÀ©Õ¹¿Õ¼äºóµÄ×Ö·û´®
+// åœ¨åŸæœ‰çš„å­—ç¬¦ä¸²ä¸­å–å¾—æ›´å¤§çš„ç©ºé—´ï¼Œå¹¶è¿”å›æ‰©å±•ç©ºé—´åçš„å­—ç¬¦ä¸²
 sds sdsMakeRoomFor(sds s, size_t addlen)
 {
-	// ³ıÈ¥Í·ºó×Ö·û´®ÆğÊ¼µÄÎ»ÖÃ
+	// é™¤å»å¤´åå­—ç¬¦ä¸²èµ·å§‹çš„ä½ç½®
 	void *sh, *newsh;
-	size_t avail = sdsavail(s);	// Ê£Óà¿Õ¼ä
+	size_t avail = sdsavail(s);	// å‰©ä½™ç©ºé—´
 	size_t len, newlen;
 	char type;
 	char oldtype = s[-1] & SDS_TYPE_MASK;
 	int hdrlen;
 
-	// Èç¹ûÊ£ÓàµÄ¿Õ¼ä×ã¹»Ö±½Ó·µ»Ø
+	// å¦‚æœå‰©ä½™çš„ç©ºé—´è¶³å¤Ÿç›´æ¥è¿”å›
 	if (avail >= addlen) return s;
 
 	len = strlen(s);
 	sh = (char*)s - sdsHdrSize(oldtype);
 	newlen = len + addlen;
-	// Èç¹ûĞÂµÄ×Ö·û´®³¤¶ÈÃ»ÓĞ³¬¹ı1MÔòÀ©´ó1±¶,³¬¹ıÔò¼ÓÉÏ1M
+	// å¦‚æœæ–°çš„å­—ç¬¦ä¸²é•¿åº¦æ²¡æœ‰è¶…è¿‡1Måˆ™æ‰©å¤§1å€,è¶…è¿‡åˆ™åŠ ä¸Š1M
 	if (newlen < SDS_MAX_PREALLOC)
 		newlen *= 2;
 	else
@@ -152,23 +152,23 @@ sds sdsMakeRoomFor(sds s, size_t addlen)
 
 	type = sdsReqType(newlen);
 
-	// type5ÒÑ²»ÄÜÔÙÊ¹ÓÃ£¬°´SDS_TYPE_8´¦Àí
+	// type5å·²ä¸èƒ½å†ä½¿ç”¨ï¼ŒæŒ‰SDS_TYPE_8å¤„ç†
 	if (type == SDS_TYPE_5) type = SDS_TYPE_8;
 	
-	// »ñÈ¡ĞÂÀàĞÍµÄÍ·³¤¶È
+	// è·å–æ–°ç±»å‹çš„å¤´é•¿åº¦
 	hdrlen = sdsHdrSize(type);
 	if (oldtype == type)
 	{
-		// Èç¹ûÓëÔ­ÀàĞÍÏàÍ¬£¬Ö±½Óµ÷ÓÃreallocº¯ÊıÀ©³äÄÚ´æ
-		// ÒòÎªheaderÃ»ÓĞ±ä£¬ËùÒÔ²»ĞèÒªÖØĞÂÉèÖÃ³¤¶È
+		// å¦‚æœä¸åŸç±»å‹ç›¸åŒï¼Œç›´æ¥è°ƒç”¨reallocå‡½æ•°æ‰©å……å†…å­˜
+		// å› ä¸ºheaderæ²¡æœ‰å˜ï¼Œæ‰€ä»¥ä¸éœ€è¦é‡æ–°è®¾ç½®é•¿åº¦
 		newsh = s_realloc(sh, hdrlen + newlen + 1);
 		if (newsh == NULL) return NULL;
 		s = (char*)newsh + hdrlen;
 	}
 	else
 	{
-		// Èç¹ûÀàĞÍµ÷ÕûÁË£¬headerµÄ´óĞ¡¾ÍĞèÒªµ÷Õû
-		// ÕâÊ±¾ÍĞèÒªÒÆ¶¯buf[]²¿·Ö£¬ËùÒÔ²»ÄÜÊ¹ÓÃrealloc
+		// å¦‚æœç±»å‹è°ƒæ•´äº†ï¼Œheaderçš„å¤§å°å°±éœ€è¦è°ƒæ•´
+		// è¿™æ—¶å°±éœ€è¦ç§»åŠ¨buf[]éƒ¨åˆ†ï¼Œæ‰€ä»¥ä¸èƒ½ä½¿ç”¨realloc
 		newsh = s_malloc(hdrlen + newlen + 1);
 		if (newsh == NULL) return NULL;
 		memcpy((char*)newsh + hdrlen, s, len + 1);
@@ -181,9 +181,9 @@ sds sdsMakeRoomFor(sds s, size_t addlen)
 	return s;
 }
 
-// ÓÃÀ´»ØÊÕsds¿ÕÓà¿Õ¼ä£¬Ñ¹ËõÄÚ´æ£¬º¯Êıµ÷ÓÃºó£¬s»áÎŞĞ§
-// Êµ¼ÊÉÏ£¬¾ÍÊÇÖØĞÂ·ÖÅäÒ»¿éÄÚ´æ£¬½«Ô­ÓĞÊı¾İ¿½±´µ½ĞÂÄÚ´æÉÏ£¬²¢ÊÍ·ÅÔ­ÓĞ¿Õ¼ä
-// ĞÂÄÚ´æµÄ´óĞ¡±ÈÔ­À´Ğ¡ÁËalloc-len´óĞ¡
+// ç”¨æ¥å›æ”¶sdsç©ºä½™ç©ºé—´ï¼Œå‹ç¼©å†…å­˜ï¼Œå‡½æ•°è°ƒç”¨åï¼Œsä¼šæ— æ•ˆ
+// å®é™…ä¸Šï¼Œå°±æ˜¯é‡æ–°åˆ†é…ä¸€å—å†…å­˜ï¼Œå°†åŸæœ‰æ•°æ®æ‹·è´åˆ°æ–°å†…å­˜ä¸Šï¼Œå¹¶é‡Šæ”¾åŸæœ‰ç©ºé—´
+// æ–°å†…å­˜çš„å¤§å°æ¯”åŸæ¥å°äº†alloc-lenå¤§å°
 sds sdsRemoveFreeSpace(sds s)
 {
 	void *sh, *newsh;
@@ -215,7 +215,7 @@ sds sdsRemoveFreeSpace(sds s)
 	return s;
 }
 
-// À©Õ¹×Ö·û´®µ½Ö¸¶¨³¤¶È
+// æ‰©å±•å­—ç¬¦ä¸²åˆ°æŒ‡å®šé•¿åº¦
 sds sdsgrowzero(sds s, size_t len)
 {
 	size_t curlen = sdslen(s);
@@ -224,13 +224,13 @@ sds sdsgrowzero(sds s, size_t len)
 	s = sdsMakeRoomFor(s, len - curlen);
 	if (s == NULL) return NULL;
 
-	// ³õÊ¼»¯ĞÂÀ©Õ¹µÄ×Ö·û´®
+	// åˆå§‹åŒ–æ–°æ‰©å±•çš„å­—ç¬¦ä¸²
 	memset(s + curlen, 0, (len - curlen + 1));
 	sdssetlen(s, len);
 	return s;
 }
 
-// Á¬½ÓÁ½¸ö×Ö·û´®
+// è¿æ¥ä¸¤ä¸ªå­—ç¬¦ä¸²
 sds sdscatlen(sds s, const void *t, size_t len)
 {
 	size_t curlen = sdslen(s);
@@ -238,26 +238,26 @@ sds sdscatlen(sds s, const void *t, size_t len)
 	s = sdsMakeRoomFor(s, len);
 	if (s == NULL) return NULL;
 
-	// Á¬½ÓĞÂ×Ö·û´®
+	// è¿æ¥æ–°å­—ç¬¦ä¸²
 	memcpy(s + curlen, t, len);
 	sdssetlen(s, curlen + len);
 	s[curlen + len] = '\0';
 	return s;
 }
 
-// °ÑÒ»¸öÒÔ¿Õ×Ö·ûÎª½áÎ²µÄ×Ö·û´®Ìí¼Óµ½sdsÄ©Î²
+// æŠŠä¸€ä¸ªä»¥ç©ºå­—ç¬¦ä¸ºç»“å°¾çš„å­—ç¬¦ä¸²æ·»åŠ åˆ°sdsæœ«å°¾
 sds sdscat(sds s, const char *t)
 {
 	return sdscatlen(s, t, strlen(t));
 }
 
-// Á¬½ÓÁ½¸ösds
+// è¿æ¥ä¸¤ä¸ªsds
 sds sdscatsds(sds s, const sds t)
 {
 	return sdscatlen(s, t, sdslen(t));
 }
 
-// ×Ö·û´®µÄ¸´ÖÆ
+// å­—ç¬¦ä¸²çš„å¤åˆ¶
 sds sdscpylen(sds s, const char *t, size_t len)
 {
 	if (sdsalloc(s) < len)
@@ -271,13 +271,13 @@ sds sdscpylen(sds s, const char *t, size_t len)
 	return s;
 }
 
-// ×Ö·û´®µÄ¸´ÖÆ
+// å­—ç¬¦ä¸²çš„å¤åˆ¶
 sds sdscpy(sds s, const char *t)
 {
 	return sdscpylen(s, t, strlen(t));
 }
 
-// °Ñ³¤ÕûĞÍ×ª»¯³É×Ö·û´®,²¢·µ»Ø×Ö·û´®³¤¶È
+// æŠŠé•¿æ•´å‹è½¬åŒ–æˆå­—ç¬¦ä¸²,å¹¶è¿”å›å­—ç¬¦ä¸²é•¿åº¦
 #define SDS_LLSTR_SIZE 21
 size_t sdsll2str(char *s, long long value)
 {
@@ -290,17 +290,17 @@ size_t sdsll2str(char *s, long long value)
 	p = s;
 	do 
 	{
-		// Í¨¹ıÇóÓàÀ´Æ´½Ó×Ö·û´®
+		// é€šè¿‡æ±‚ä½™æ¥æ‹¼æ¥å­—ç¬¦ä¸²
 		*p++ = '0' + (v % 10);
 		v /= 10;
 	} while (v);
 	if (value < 0) *p++ = '-';
 
-	// ¼ÆËã³¤¶È£¬²¢Ìí¼Ó¿Õ×Ö·û´®½áÊø·û
+	// è®¡ç®—é•¿åº¦ï¼Œå¹¶æ·»åŠ ç©ºå­—ç¬¦ä¸²ç»“æŸç¬¦
 	l = p - s;
 	*p = '\0';
 
-	// ·´×ª×Ö·û´®
+	// åè½¬å­—ç¬¦ä¸²
 	p--;
 	while (s < p)
 	{
@@ -313,7 +313,7 @@ size_t sdsll2str(char *s, long long value)
 	return l;
 }
 
-// Í¨¹ıÒ»¸ö³¤ÕûĞÍµÄÊı×Ö´´½¨×Ö·û´®
+// é€šè¿‡ä¸€ä¸ªé•¿æ•´å‹çš„æ•°å­—åˆ›å»ºå­—ç¬¦ä¸²
 sds sdsfromlonglong(long long value)
 {
 	char buf[SDS_LLSTR_SIZE];

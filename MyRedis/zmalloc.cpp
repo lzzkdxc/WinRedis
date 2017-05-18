@@ -1,7 +1,7 @@
-#include <stdio.h>
+ï»¿#include <stdio.h>
 #include <stdlib.h>
 
-// Ô­Ê¼ÏµÍ³freeÊÍ·Å·½·¨
+// åŸå§‹ç³»ç»Ÿfreeé‡Šæ”¾æ–¹æ³•
 void zlibc_free(void *ptr)
 {
 	free(ptr);
@@ -26,11 +26,11 @@ void zlibc_free(void *ptr)
 #endif
 #endif
 
-// __atomic_add_fetchÊÇC++11ÌØĞÔÖĞÌá¹©µÄÔ­×Ó¼Ó²Ù×÷
+// __atomic_add_fetchæ˜¯C++11ç‰¹æ€§ä¸­æä¾›çš„åŸå­åŠ æ“ä½œ
 #if defined(__ATOMIC_RELAXED)
 #define update_zmalloc_stat_add(__n) __atomic_add_fetch(&used_memory, (__n), __ATOMIC_RELAXED)
 #define update_zmalloc_stat_sub(__n) __atomic_sub_fetch(&used_memory, (__n), __ATOMIC_RELAXED)
-// Èç¹û²»Ö§³ÖC++11£¬Ôòµ÷ÓÃGCCÌá¹©µÄÔ­×Ó¼Ó²Ù×÷
+// å¦‚æœä¸æ”¯æŒC++11ï¼Œåˆ™è°ƒç”¨GCCæä¾›çš„åŸå­åŠ æ“ä½œ
 #elif defined(HAVE_ATOMIC)
 #define update_zmalloc_stat_add(__n) __sync_add_and_fetch(&used_memory, (__n))
 #define update_zmalloc_stat_sub(__n) __sync_sub_and_fetch(&used_memory, (__n))
@@ -58,12 +58,12 @@ void zlibc_free(void *ptr)
 
 #endif
 
-// ¸üĞÂused_memoryµÄÖµ
+// æ›´æ–°used_memoryçš„å€¼
 #define update_zmalloc_stat_alloc(__n) do { \
 	size_t _n = (__n); \
-	if (_n&(sizeof(long)-1)) _n += sizeof(long)-(_n&(sizeof(long)-1)); /*½«_nµ÷ÕûÎªsizeof(long)µÄÕûÊı±¶*/\
+	if (_n&(sizeof(long)-1)) _n += sizeof(long)-(_n&(sizeof(long)-1)); /*å°†_nè°ƒæ•´ä¸ºsizeof(long)çš„æ•´æ•°å€*/\
 	if (zmalloc_thread_safe) { \
-		update_zmalloc_stat_add(_n); /*µ÷ÓÃÔ­×Ó²Ù×÷¼Ó(+)À´¸üĞÂÒÑÓÃÄÚ´æ*/ \
+		update_zmalloc_stat_add(_n); /*è°ƒç”¨åŸå­æ“ä½œåŠ (+)æ¥æ›´æ–°å·²ç”¨å†…å­˜*/ \
 	} else { \
 		used_memory += _n; \
 	} \
@@ -79,9 +79,9 @@ void zlibc_free(void *ptr)
 	} \
 } while(0)
 
-// ÒÑÊ¹ÓÃµÄÄÚ´æ
+// å·²ä½¿ç”¨çš„å†…å­˜
 static size_t used_memory = 0;
-// ÊÇ·ñÏß³Ì°²È«
+// æ˜¯å¦çº¿ç¨‹å®‰å…¨
 static int zmalloc_thread_safe = 0;
 #if defined(_WIN32)
 std::mutex used_memory_mutex;
@@ -89,7 +89,7 @@ std::mutex used_memory_mutex;
 pthread_mutex_t used_memory_mutex = PTHREAD_MUTEX_INITIALIZER;
 #endif
 
-// Ä¬ÈÏÄÚ´æÒç³ö´¦Àíº¯Êı
+// é»˜è®¤å†…å­˜æº¢å‡ºå¤„ç†å‡½æ•°
 static void zmalloc_default_oom(size_t size)
 {
 	fprintf(stderr, "zmalloc, Out of memory trying to allocate %zu bytes\n", size);
@@ -97,13 +97,13 @@ static void zmalloc_default_oom(size_t size)
 	abort();
 }
 
-//×Ô¶¨ÒåÒì³£´¦Àíº¯Êı
+//è‡ªå®šä¹‰å¼‚å¸¸å¤„ç†å‡½æ•°
 static void(*zmalloc_oom_handler)(size_t) = zmalloc_default_oom;
 
-// ÉêÇëÄÚ´æ
+// ç”³è¯·å†…å­˜
 void *zmalloc(size_t size)
 {
-	// ¶àÉêÇëµÄPREFIX_SIZE´óĞ¡µÄÄÚ´æÓÃÓÚ¼ÇÂ¼¸Ã¶ÎÄÚ´æµÄ´óĞ¡
+	// å¤šç”³è¯·çš„PREFIX_SIZEå¤§å°çš„å†…å­˜ç”¨äºè®°å½•è¯¥æ®µå†…å­˜çš„å¤§å°
 	void *ptr = malloc(size + PREFIX_SIZE);
 	if (!ptr) zmalloc_oom_handler(size);
 #ifdef HAVE_MALLOC_SIZE
@@ -130,7 +130,7 @@ void *zcalloc(size_t size)
 #endif // HAVE_MALLOC_SIZE
 }
 
-// µ÷ÕûÒÑÉêÇëÄÚ´æµÄ´óĞ¡
+// è°ƒæ•´å·²ç”³è¯·å†…å­˜çš„å¤§å°
 void *zrealloc(void *ptr, size_t size)
 {
 #ifndef HAVE_MALLOC_SIZE
@@ -171,7 +171,7 @@ size_t zmalloc_size(void *ptr)
 }
 #endif
 
-// ÄÚ´æÊÍ·Å
+// å†…å­˜é‡Šæ”¾
 void zfree(void *ptr)
 {
 #ifndef HAVE_MALLOC_SIZE
@@ -192,7 +192,7 @@ void zfree(void *ptr)
 }
 
 
-// ×Ö·û´®¿½±´
+// å­—ç¬¦ä¸²æ‹·è´
 char *zstrdup(const char *s)
 {
 	size_t l = strlen(s) + 1;
@@ -201,7 +201,7 @@ char *zstrdup(const char *s)
 	return p;
 }
 
-// »ñÈ¡µ±Ç°ÒÔ¼°Õ¼ÓÃµÄÄÚ´æ¿Õ¼ä´óĞ¡
+// è·å–å½“å‰ä»¥åŠå ç”¨çš„å†…å­˜ç©ºé—´å¤§å°
 size_t zmalloc_used_memory(void)
 {
 	size_t um;
@@ -228,25 +228,25 @@ size_t zmalloc_used_memory(void)
 	return um;
 }
 
-//ÉèÖÃÏß³Ì°²È«Ä£Ê½
+//è®¾ç½®çº¿ç¨‹å®‰å…¨æ¨¡å¼
 void zmalloc_enable_thread_safeness()
 {
 	zmalloc_thread_safe = 1;
 }
 
-// ×Ô¶¨ÒåÄÚ´æÒç³öµÄ´¦Àí·½·¨
+// è‡ªå®šä¹‰å†…å­˜æº¢å‡ºçš„å¤„ç†æ–¹æ³•
 void zmalloc_set_oom_handler(void(*oom_handler)(size_t))
 {
 	zmalloc_oom_handler = oom_handler;
 }
 
-// »ñÈ¡Ëù¸øÄÚ´æºÍÒÑÊ¹ÓÃÄÚ´æµÄ´óĞ¡Ö®±È
+// è·å–æ‰€ç»™å†…å­˜å’Œå·²ä½¿ç”¨å†…å­˜çš„å¤§å°ä¹‹æ¯”
 float zmalloc_get_fragmentation_ratio(size_t rss)
 {
 	return (float)(rss / zmalloc_used_memory());
 }
 
-//»ñÈ¡RSSĞÅÏ¢(Resident Set Size)
+//è·å–RSSä¿¡æ¯(Resident Set Size)
 size_t zmalloc_get_rss(void)
 {
 #if defined(HAVE_PROC_STAT)
@@ -305,7 +305,7 @@ size_t zmalloc_get_rss(void)
 #endif
 }
 
-// ´Ó/proc/self/smapÖĞ»ñÈ¡Ö¸¶¨×Ö¶ÎµÄ×Ö½ÚÊı
+// ä»/proc/self/smapä¸­è·å–æŒ‡å®šå­—æ®µçš„å­—èŠ‚æ•°
 size_t zmalloc_get_smap_bytes_by_field(char *field)
 {
 #if defined(HAVE_PROC_SMAPS)
@@ -335,13 +335,13 @@ size_t zmalloc_get_smap_bytes_by_field(char *field)
 #endif
 }
 
-// »ñµÃÊµ¼ÊÄÚ´æ´óĞ¡
+// è·å¾—å®é™…å†…å­˜å¤§å°
 size_t zmalloc_get_private_dirty(void)
 {
 	return zmalloc_get_smap_bytes_by_field("Private_Dirty:");
 }
 
-// »ñÈ¡ÎïÀíÄÚ´æ´óĞ¡
+// è·å–ç‰©ç†å†…å­˜å¤§å°
 size_t zmalloc_get_memory_size()
 {
 #if defined(_WIN32) && (defined(__CYGWIN__) || defined(__CYGWIN32__))

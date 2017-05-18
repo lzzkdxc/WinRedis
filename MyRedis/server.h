@@ -1,4 +1,4 @@
-#ifndef __REDIS_H
+ï»¿#ifndef __REDIS_H
 #define __REDIS_H
 
 #pragma warning(disable:4200)
@@ -12,14 +12,14 @@
 #include "dict.h"
 #include "zmalloc.h"
 
-/* ¶ÔÏóÀàĞÍ */
+/* å¯¹è±¡ç±»å‹ */
 #define OBJ_STRING 0
 #define OBJ_LIST 1
 #define OBJ_SET 2
 #define OBJ_ZSET 3
 #define OBJ_HASH 4
 
-/* ¶ÔÏó±àÂë */
+/* å¯¹è±¡ç¼–ç  */
 #define OBJ_ENCODING_RAW 0     /* Raw representation */
 #define OBJ_ENCODING_INT 1     /* Encoded as integer */
 #define OBJ_ENCODING_HT 2      /* Encoded as hash table */
@@ -34,7 +34,7 @@
 #define ZSKIPLIST_MAXLEVEL 32
 #define ZSKIPLIST_P 0.25
 
-/* ´òÓ¡¶ÑÕ»¸ú×ÙÊı¾İ */
+/* æ‰“å°å †æ ˆè·Ÿè¸ªæ•°æ® */
 #define serverAssertWithInfo(_c, _o, _e) ((_e)?(void)0:(_serverAssertWithInfo(_c,_o,#_e,__FILE__,__LINE__), _exit(1)))
 #define serverAssert(_e) ((_e)?(void)0 : (_serverAssert(#_e, __FILE__, __LINE__), _exit(1)))
 #define serverPanic(_e) _serverPanic(#_e, __FILE__,__LINE__),_exit(1)
@@ -58,23 +58,23 @@ typedef struct client
 
 typedef struct zskiplistNode 
 {
-	robj *obj; //³ÉÔ±¶ÔÏó
-	double score; //·ÖÖµ
-	struct zskiplistNode *backward; //ºóÏòÖ¸Õë
+	robj *obj; //æˆå‘˜å¯¹è±¡
+	double score; //åˆ†å€¼
+	struct zskiplistNode *backward; //åå‘æŒ‡é’ˆ
 	struct zskiplistLevel 
 	{
-		struct zskiplistNode *forward; //Ç°ÏòÖ¸Õë
-		unsigned int span; //¿ç¶È
-	} level[]; //³õÊ¼»¯Ò»¸öÌøÔ¾±í½ÚµãµÄÊ±ºò»áÎªÆäËæ»úÉú³ÉÒ»¸ö²ã´óĞ¡£¬Ã¿¸ö½ÚµãµÄÃ¿Ò»²ãÒÔÁ´±íµÄĞÎÊ½Á¬½ÓÆğÀ´
+		struct zskiplistNode *forward; //å‰å‘æŒ‡é’ˆ
+		unsigned int span; //è·¨åº¦
+	} level[]; //åˆå§‹åŒ–ä¸€ä¸ªè·³è·ƒè¡¨èŠ‚ç‚¹çš„æ—¶å€™ä¼šä¸ºå…¶éšæœºç”Ÿæˆä¸€ä¸ªå±‚å¤§å°ï¼Œæ¯ä¸ªèŠ‚ç‚¹çš„æ¯ä¸€å±‚ä»¥é“¾è¡¨çš„å½¢å¼è¿æ¥èµ·æ¥
 } zskiplistNode;
 
 typedef struct zskiplist
 {
-	//ÌøÔ¾±íµÄ±íÍ·½ÚµãºÍ±íÎ²½Úµã
+	//è·³è·ƒè¡¨çš„è¡¨å¤´èŠ‚ç‚¹å’Œè¡¨å°¾èŠ‚ç‚¹
 	struct zskiplistNode *header, *tail;
-	//±íÖĞ½ÚµãµÄÊıÁ¿
+	//è¡¨ä¸­èŠ‚ç‚¹çš„æ•°é‡
 	unsigned long length;
-	//±íÖĞ²ãÊı×î´óµÄ½Úµã²ãÊı
+	//è¡¨ä¸­å±‚æ•°æœ€å¤§çš„èŠ‚ç‚¹å±‚æ•°
 	int level;
 } zskiplist;
 
@@ -84,7 +84,7 @@ typedef struct zset
 	zskiplist *zsl;
 } zset;
 
-/* Redis¶ÔÏóÊµÏÖ */
+/* Rediså¯¹è±¡å®ç° */
 void decrRefCount(robj *o);
 void freeStringObject(robj *o);
 void freeListObject(robj *o);
@@ -100,7 +100,7 @@ int equalStringObjects(robj *a, robj *b);
 zskiplist *zslCreate(void);
 void zslFree(zskiplist *zsl);
 
-/* µ÷ÊÔº¯Êı */
+/* è°ƒè¯•å‡½æ•° */
 void _serverAssertWithInfo(client *c, robj *o, char *estr, char *file, int line);
 void _serverAssert(char *estr, char *file, int line);
 void _serverPanic(char *msg, char *file, int line);

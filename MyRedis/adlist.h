@@ -1,53 +1,53 @@
-#ifndef __ADLIST_H
+ï»¿#ifndef __ADLIST_H
 #define __ADLIST_H
 
 
-// Á´±í½Úµã
+// é“¾è¡¨èŠ‚ç‚¹
 typedef struct _listNode
 {
-	struct _listNode *prev;	// Ç°Ò»¸ö½Úµã
-	struct _listNode *next;	// ºóÒ»¸ö½Úµã
-	void *value;			// ½ÚµãÖµ
+	struct _listNode *prev;	// å‰ä¸€ä¸ªèŠ‚ç‚¹
+	struct _listNode *next;	// åä¸€ä¸ªèŠ‚ç‚¹
+	void *value;			// èŠ‚ç‚¹å€¼
 } listNode;
 
-// µü´úÆ÷
+// è¿­ä»£å™¨
 typedef struct _listIter
 {
-	listNode *next;			// Ö¸ÏòÏÂÒ»¸ö½Úµã
-	int direction;			// ·½Ïò²ÎÊı£¬ÕıĞòºÍÄæĞò
+	listNode *next;			// æŒ‡å‘ä¸‹ä¸€ä¸ªèŠ‚ç‚¹
+	int direction;			// æ–¹å‘å‚æ•°ï¼Œæ­£åºå’Œé€†åº
 } listIter;
 
-// Á´±í
+// é“¾è¡¨
 typedef struct _list
 {
-	listNode *head;			// Ö¸ÏòÍ·½Úµã
-	listNode *tail;			// Ö¸ÏòÎ²½Úµã
-	void *(*dup)(void *ptr);	// ×Ô¶¨Òå½Úµã¸´ÖÆº¯Êı
-	void (*free)(void *ptr);	// ×Ô¶¨Òå½ÚµãÊÍ·Åº¯Êı
-	int (*match)(void *ptr, void *key);	// ×Ô¶¨Òå½ÚµãÆ¥Åäº¯Êı
-	unsigned long len;		// Á´±í³¤¶È
+	listNode *head;			// æŒ‡å‘å¤´èŠ‚ç‚¹
+	listNode *tail;			// æŒ‡å‘å°¾èŠ‚ç‚¹
+	void *(*dup)(void *ptr);	// è‡ªå®šä¹‰èŠ‚ç‚¹å¤åˆ¶å‡½æ•°
+	void (*free)(void *ptr);	// è‡ªå®šä¹‰èŠ‚ç‚¹é‡Šæ”¾å‡½æ•°
+	int (*match)(void *ptr, void *key);	// è‡ªå®šä¹‰èŠ‚ç‚¹åŒ¹é…å‡½æ•°
+	unsigned long len;		// é“¾è¡¨é•¿åº¦
 } list;
 
 
-#define listLength(l) ((l)->len)  // »ñÈ¡list³¤¶È
-#define listFirst(l) ((l)->head)  // »ñÈ¡listÍ·½ÚµãÖ¸Õë
-#define listLast(l) ((l)->tail)   // »ñÈ¡listÎ²½ÚµãÖ¸Õë
+#define listLength(l) ((l)->len)  // è·å–listé•¿åº¦
+#define listFirst(l) ((l)->head)  // è·å–listå¤´èŠ‚ç‚¹æŒ‡é’ˆ
+#define listLast(l) ((l)->tail)   // è·å–listå°¾èŠ‚ç‚¹æŒ‡é’ˆ
 
-#define listPrevNode(n) ((n)->prev)		// »ñÈ¡µ±Ç°½ÚµãµÄÇ°Ò»¸ö½Úµã
-#define listNextNode(n) ((n)->next)		// »ñÈ¡µ±Ç°½ÚµãµÄºóÒ»¸ö½Úµã
-#define listNodeValue(n) ((n)->value)	// »ñÈ¡µ±Ç°½ÚµãµÄÖµ
+#define listPrevNode(n) ((n)->prev)		// è·å–å½“å‰èŠ‚ç‚¹çš„å‰ä¸€ä¸ªèŠ‚ç‚¹
+#define listNextNode(n) ((n)->next)		// è·å–å½“å‰èŠ‚ç‚¹çš„åä¸€ä¸ªèŠ‚ç‚¹
+#define listNodeValue(n) ((n)->value)	// è·å–å½“å‰èŠ‚ç‚¹çš„å€¼
 
-#define listSetDupMethod(l,m) ((l)->dup = (m))		// ÉèÖÃ½Úµã¸´ÖÆº¯Êı
-#define listSetFreeMethod(l,m) ((l)->free = (m))    // ÉèÖÃ½ÚµãÊÍ·Åº¯Êı
-#define listSetMatchMethod(l,m) ((l)->match = (m))  // ÉèÖÃ½ÚµãÆ¥Åäº¯Êı
+#define listSetDupMethod(l,m) ((l)->dup = (m))		// è®¾ç½®èŠ‚ç‚¹å¤åˆ¶å‡½æ•°
+#define listSetFreeMethod(l,m) ((l)->free = (m))    // è®¾ç½®èŠ‚ç‚¹é‡Šæ”¾å‡½æ•°
+#define listSetMatchMethod(l,m) ((l)->match = (m))  // è®¾ç½®èŠ‚ç‚¹åŒ¹é…å‡½æ•°
 
-#define listGetDupMethod(l) ((l)->dup)		// »ñÈ¡½Úµã¸´ÖÆº¯Êı
-#define listGetFreeMethod(l) ((l)->free)		// »ñÈ¡½ÚµãÊÍ·Åº¯Êı
-#define listGetMatchMethod(l) ((l)->match)	// »ñÈ¡½ÚµãÆ¥Åäº¯Êı
+#define listGetDupMethod(l) ((l)->dup)		// è·å–èŠ‚ç‚¹å¤åˆ¶å‡½æ•°
+#define listGetFreeMethod(l) ((l)->free)		// è·å–èŠ‚ç‚¹é‡Šæ”¾å‡½æ•°
+#define listGetMatchMethod(l) ((l)->match)	// è·å–èŠ‚ç‚¹åŒ¹é…å‡½æ•°
 
-// µü´úÆ÷·½ÏòµÄºê¶¨Òå
-#define AL_START_HEAD 0		// ´ÓÍ·µ½Î²
-#define AL_START_TAIL 1		// ´ÓÎ²µ½Í·
+// è¿­ä»£å™¨æ–¹å‘çš„å®å®šä¹‰
+#define AL_START_HEAD 0		// ä»å¤´åˆ°å°¾
+#define AL_START_TAIL 1		// ä»å°¾åˆ°å¤´
 
 list *listCreate(void);
 void listRelease(list *l);

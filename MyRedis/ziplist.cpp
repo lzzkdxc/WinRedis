@@ -1,4 +1,4 @@
-#include <stdlib.h>
+ï»¿#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
@@ -33,50 +33,50 @@
 #define INT24_MAX 0x7fffff
 #define INT24_MIN (-INT24_MAX - 1)
 
-/* ÅĞ¶ÏÊÇ·ñÊÇ×Ö·û´®ĞÍ */
+/* åˆ¤æ–­æ˜¯å¦æ˜¯å­—ç¬¦ä¸²å‹ */
 #define ZIP_IS_STR(enc) (((enc) & ZIP_STR_MASK) < ZIP_STR_MASK)
 
-/* ¹¤¾ßºê */
-/* ·ÃÎÊziplistµÄzlbytes×Ö¶Î */
+/* å·¥å…·å® */
+/* è®¿é—®ziplistçš„zlbyteså­—æ®µ */
 #define ZIPLIST_BYTES(zl)		(*((uint32_t*)(zl)))
-/* ·ÃÎÊziplistµÄzltail×Ö¶Î */
+/* è®¿é—®ziplistçš„zltailå­—æ®µ */
 #define ZIPLIST_TAIL_OFFSET(zl)	(*((uint32_t*)((zl)+sizeof(uint32_t))))
-/* »ñÈ¡ziplistµÄzllen×Ö¶Î */
+/* è·å–ziplistçš„zllenå­—æ®µ */
 #define ZIPLIST_LENGTH(zl)		(*((uint16_t*)((zl)+sizeof(uint32_t)*2)))
-/* ziplistÍ·²¿³¤¶È£º 4×Ö½ÚµÄzlbytes + 4×Ö½ÚµÄzltail + 2×Ö½ÚµÄzllen */
+/* ziplistå¤´éƒ¨é•¿åº¦ï¼š 4å­—èŠ‚çš„zlbytes + 4å­—èŠ‚çš„zltail + 2å­—èŠ‚çš„zllen */
 #define ZIPLIST_HEADER_SIZE		(sizeof(uint32_t)*2+sizeof(uint16_t))
-/* ziplistÄ©Î²³¤¶È */
+/* ziplistæœ«å°¾é•¿åº¦ */
 #define ZIPLIST_END_SIZE		(sizeof(uint8_t))
-/* »ñÈ¡ziplistµÄµÚÒ»¸ö½ÚµãµÄÊ×µØÖ· */
+/* è·å–ziplistçš„ç¬¬ä¸€ä¸ªèŠ‚ç‚¹çš„é¦–åœ°å€ */
 #define ZIPLIST_ENTRY_HEAD(zl)	((zl)+ZIPLIST_HEADER_SIZE)
-/* »ñÈ¡ziplistµÄ×îºóÒ»¸ö½ÚµãµÄÊ×µØÖ· */
+/* è·å–ziplistçš„æœ€åä¸€ä¸ªèŠ‚ç‚¹çš„é¦–åœ°å€ */
 #define ZIPLIST_ENTRY_TAIL(zl)	((zl)+intrev32ifbe(ZIPLIST_TAIL_OFFSET(zl)))
-/* »ñÈ¡ziplistµÄ½áÎ²·û */
+/* è·å–ziplistçš„ç»“å°¾ç¬¦ */
 #define ZIPLIST_ENTRY_END(zl)	((zl)+intrev32ifbe(ZIPLIST_BYTES(zl))-1)
 
-/* ×ÔÔö½ÚµãµÄÊıÁ¿ */
+/* è‡ªå¢èŠ‚ç‚¹çš„æ•°é‡ */
 #define ZIPLIST_INCR_LENGTH(zl, incr) { \
 	if (ZIPLIST_LENGTH(zl) < UINT16_MAX) \
 		ZIPLIST_LENGTH(zl) = intrev16ifbe(intrev16ifbe(ZIPLIST_LENGTH(zl)) + incr); \
 }
 
-// ½Úµã½á¹¹
+// èŠ‚ç‚¹ç»“æ„
 typedef struct _zlentry 
 {
-	unsigned int prevrawlensize, prevrawlen; // Ç°ÖÃ½Úµã³¤¶ÈºÍ±àÂëËùĞè³¤¶È
-	unsigned int lensize, len;	// µ±Ç°½Úµã³¤¶ÈºÍ±àÂëËùĞè³¤¶È
-	unsigned int headersize;	// Í·µÄ´óĞ¡
-	unsigned char encoding;		// ±àÂëÀàĞÍ
-	unsigned char *p;			// Êı¾İ²¿·Ö
+	unsigned int prevrawlensize, prevrawlen; // å‰ç½®èŠ‚ç‚¹é•¿åº¦å’Œç¼–ç æ‰€éœ€é•¿åº¦
+	unsigned int lensize, len;	// å½“å‰èŠ‚ç‚¹é•¿åº¦å’Œç¼–ç æ‰€éœ€é•¿åº¦
+	unsigned int headersize;	// å¤´çš„å¤§å°
+	unsigned char encoding;		// ç¼–ç ç±»å‹
+	unsigned char *p;			// æ•°æ®éƒ¨åˆ†
 } zlentry;
 
-// ´ÓptrÖĞÌáÈ¡±àÂë£¬°Ñ±àÂëÉèÖÃ½øencodingÖĞ
+// ä»pträ¸­æå–ç¼–ç ï¼ŒæŠŠç¼–ç è®¾ç½®è¿›encodingä¸­
 #define ZIP_ENTRY_ENCODING(ptr, encoding) do { \
 	(encoding) = (ptr[0]); \
 	if ((encoding) < ZIP_STR_MASK) (encoding) &= ZIP_STR_MASK; \
 } while (0);
 
-// ·µ»Ø´æ´¢encoding±àÂëËùĞèµÄ×Ö½ÚÊı
+// è¿”å›å­˜å‚¨encodingç¼–ç æ‰€éœ€çš„å­—èŠ‚æ•°
 unsigned int zipIntSize(unsigned char encoding)
 {
 	switch (encoding) {
@@ -91,7 +91,7 @@ unsigned int zipIntSize(unsigned char encoding)
 	return 0;
 }
 
-/* ±àÂërawlen²¢Ğ´Èëp£¬Èç¹ûpÎªnull£¬Ôò·µ»Ø±àÂërawlen³¤¶ÈËùĞèµÄ×Ö½ÚÊı */
+/* ç¼–ç rawlenå¹¶å†™å…¥pï¼Œå¦‚æœpä¸ºnullï¼Œåˆ™è¿”å›ç¼–ç rawlené•¿åº¦æ‰€éœ€çš„å­—èŠ‚æ•° */
 unsigned int zipEncodeLength(unsigned char *p, unsigned char encoding, unsigned int rawlen)
 {
 	unsigned int len = 1;
@@ -99,8 +99,8 @@ unsigned int zipEncodeLength(unsigned char *p, unsigned char encoding, unsigned 
 
 	if (ZIP_IS_STR(encoding))
 	{
-		/*ËäÈ»¸ø³öÁË±àÂë£¬µ«ÊÇËü¿ÉÄÜ²»ÊÇÎª×Ö·û´®ÉèÖÃµÄ£¬
-		ËùÒÔÎÒÃÇÔÚÕâÀïÊ¹ÓÃÔ­Ê¼³¤¶ÈÀ´È·¶¨Ëü*/
+		/*è™½ç„¶ç»™å‡ºäº†ç¼–ç ï¼Œä½†æ˜¯å®ƒå¯èƒ½ä¸æ˜¯ä¸ºå­—ç¬¦ä¸²è®¾ç½®çš„ï¼Œ
+		æ‰€ä»¥æˆ‘ä»¬åœ¨è¿™é‡Œä½¿ç”¨åŸå§‹é•¿åº¦æ¥ç¡®å®šå®ƒ*/
 		if (rawlen <= 0x3f)
 		{
 			if (!p) return len;
@@ -134,10 +134,10 @@ unsigned int zipEncodeLength(unsigned char *p, unsigned char encoding, unsigned 
 	return len;
 }
 
-/* ½âÂë³¤¶È
-encoding: ½Úµã±àÂë
-lensize: ±£´æ½Úµã³¤¶ÈËùĞèµÄ×Ö½ÚÊı
-len: ½ÚµãÊıÁ¿
+/* è§£ç é•¿åº¦
+encoding: èŠ‚ç‚¹ç¼–ç 
+lensize: ä¿å­˜èŠ‚ç‚¹é•¿åº¦æ‰€éœ€çš„å­—èŠ‚æ•°
+len: èŠ‚ç‚¹æ•°é‡
 */
 #define ZIP_DECODE_LENGTH(ptr, encoding, lensize, len) do { \
 	ZIP_ENTRY_ENCODING((ptr), (encoding));					\
@@ -163,8 +163,8 @@ len: ½ÚµãÊıÁ¿
 	}														\
 } while (0);
 
-/* ±àÂëÉÏÒ»¸ö½ÚµãµÄ³¤¶È£¬²¢Ğ´Èëµ½p.
-Èç¹ûpÊÇnull, Ôò·µ»Ø±àÂëÕâ¸ö½Úµã³¤¶ÈËùĞèµÄ×Ö½ÚÊı*/
+/* ç¼–ç ä¸Šä¸€ä¸ªèŠ‚ç‚¹çš„é•¿åº¦ï¼Œå¹¶å†™å…¥åˆ°p.
+å¦‚æœpæ˜¯null, åˆ™è¿”å›ç¼–ç è¿™ä¸ªèŠ‚ç‚¹é•¿åº¦æ‰€éœ€çš„å­—èŠ‚æ•°*/
 unsigned int zipPrevEncodeLength(unsigned char *p, unsigned int len)
 {
 	if (p == NULL)
@@ -187,8 +187,8 @@ unsigned int zipPrevEncodeLength(unsigned char *p, unsigned int len)
 	}
 }
 
-/* ±àÂëÉÏÒ»¸ö½ÚµãµÄ³¤¶È£¬²¢Ğ´Èëµ½p
- Õâ¸öÖ»ÔÚ´ó¶ËµÄÇé¿öÏÂÊ¹ÓÃ£¬ÔÚ__ziplistCascadeUpdateÖĞ±»ÒıÓÃ */
+/* ç¼–ç ä¸Šä¸€ä¸ªèŠ‚ç‚¹çš„é•¿åº¦ï¼Œå¹¶å†™å…¥åˆ°p
+ è¿™ä¸ªåªåœ¨å¤§ç«¯çš„æƒ…å†µä¸‹ä½¿ç”¨ï¼Œåœ¨__ziplistCascadeUpdateä¸­è¢«å¼•ç”¨ */
 void zipPrevEncodeLengthForceLarge(unsigned char *p, unsigned int len)
 {
 	if (p == NULL) return;
@@ -197,7 +197,7 @@ void zipPrevEncodeLengthForceLarge(unsigned char *p, unsigned int len)
 	memrev32ifbe(p+1);
 }
 
-/* ½âÂëÉÏÒ»¸öÔªËØµÄ³¤¶ÈËùĞèµÄ×Ö½ÚÊı */
+/* è§£ç ä¸Šä¸€ä¸ªå…ƒç´ çš„é•¿åº¦æ‰€éœ€çš„å­—èŠ‚æ•° */
 #define ZIP_DECODE_PREVLENSIZE(ptr, prevlensize) do {	\
 	if ((ptr)[0] < ZIP_BIGLEN) {						\
 		(prevlensize) = 1;								\
@@ -206,7 +206,7 @@ void zipPrevEncodeLengthForceLarge(unsigned char *p, unsigned int len)
 	}													\
 } while (0);
 
-/* ½âÂëÇ°Ò»¸öÔªËØµÄ³¤¶È */
+/* è§£ç å‰ä¸€ä¸ªå…ƒç´ çš„é•¿åº¦ */
 #define ZIP_DECODE_PREVLEN(ptr, prevlensize, prevlen) do {	\
 	ZIP_DECODE_PREVLENSIZE(ptr, prevlensize);				\
 	if ((prevlensize) == 1) {								\
@@ -218,7 +218,7 @@ void zipPrevEncodeLengthForceLarge(unsigned char *p, unsigned int len)
 	}														\
 } while (0);
 
-/* ·µ»ØpÖ¸ÏòµÄÇ°Ò»¸ö½ÚµãµÄ³¤¶ÈÓë´æ´¢len³¤¶ÈËùĞè×Ö½ÚÊıÉÏµÄ²îÒì */
+/* è¿”å›pæŒ‡å‘çš„å‰ä¸€ä¸ªèŠ‚ç‚¹çš„é•¿åº¦ä¸å­˜å‚¨lené•¿åº¦æ‰€éœ€å­—èŠ‚æ•°ä¸Šçš„å·®å¼‚ */
 int zipPrevLenByteDiff(unsigned char *p, unsigned int len)
 {
 	unsigned int prevlensize;
@@ -226,7 +226,7 @@ int zipPrevLenByteDiff(unsigned char *p, unsigned int len)
 	return zipPrevEncodeLength(NULL, len) - prevlensize;
 }
 
-/* ¼ÆËãpÖ¸ÏòµÄ½ÚµãÊ¹ÓÃµÄ×Ü×Ö½ÚÊı */
+/* è®¡ç®—pæŒ‡å‘çš„èŠ‚ç‚¹ä½¿ç”¨çš„æ€»å­—èŠ‚æ•° */
 unsigned int zipRawEntryLength(unsigned char *p)
 {
 	unsigned int prevlensize, encoding, lensize, len;
@@ -235,8 +235,8 @@ unsigned int zipRawEntryLength(unsigned char *p)
 	return prevlensize + lensize + len;
 }
 
-/* ¼ì²é'entry'Ö¸ÏòµÄ×Ö·û´®ÊÇ·ñ¿ÉÒÔ±»±àÂëÎªÕûÊı
-´æ´¢ÕûÊıµ½v */
+/* æ£€æŸ¥'entry'æŒ‡å‘çš„å­—ç¬¦ä¸²æ˜¯å¦å¯ä»¥è¢«ç¼–ç ä¸ºæ•´æ•°
+å­˜å‚¨æ•´æ•°åˆ°v */
 int zipTryEncoding(unsigned char *entry, unsigned int entrylen, long long *v, unsigned char *encoding)
 {
 	long long value;
@@ -262,7 +262,7 @@ int zipTryEncoding(unsigned char *entry, unsigned int entrylen, long long *v, un
 	return 0;
 }
 
-/* ¸ù¾İencodingÀàĞÍ£¬°ÑvalueĞ´Èëp */
+/* æ ¹æ®encodingç±»å‹ï¼ŒæŠŠvalueå†™å…¥p */
 void zipSaveInteger(unsigned char *p, int64_t value, unsigned char encoding)
 {
 	int16_t i16;
@@ -298,7 +298,7 @@ void zipSaveInteger(unsigned char *p, int64_t value, unsigned char encoding)
 	}
 	else if (encoding >= ZIP_INT_IMM_MIN && encoding <= ZIP_INT_IMM_MAX)
 	{
-		/*²»×öÈÎºÎ´¦Àí*/
+		/*ä¸åšä»»ä½•å¤„ç†*/
 	}
 	else
 	{
@@ -306,7 +306,7 @@ void zipSaveInteger(unsigned char *p, int64_t value, unsigned char encoding)
 	}
 }
 
-/* ¶ÁÈ¡´Ó'p'±àÂëÎª'encoding'µÄÕûÊı */
+/* è¯»å–ä»'p'ç¼–ç ä¸º'encoding'çš„æ•´æ•° */
 int64_t zipLoadInteger(unsigned char *p, unsigned char encoding)
 {
 	int16_t i16;
@@ -360,23 +360,23 @@ void zipEntry(unsigned char *p, zlentry *e)
 	e->p = p;
 }
 
-/* ´´½¨Ò»¸ö¿ÕµÄziplist */
+/* åˆ›å»ºä¸€ä¸ªç©ºçš„ziplist */
 unsigned char *ziplistNew()
 {
-	// ¿ÕziplistµÄ´óĞ¡Îª11¸ö×Ö½Ú£¬Í·²¿10×Ö½Ú£¬Î²²¿1×Ö½Ú
+	// ç©ºziplistçš„å¤§å°ä¸º11ä¸ªå­—èŠ‚ï¼Œå¤´éƒ¨10å­—èŠ‚ï¼Œå°¾éƒ¨1å­—èŠ‚
 	size_t bytes = ZIPLIST_HEADER_SIZE + 1;
-	// ·ÖÅäÄÚ´æ
+	// åˆ†é…å†…å­˜
 	unsigned char *zl = (unsigned char *)zmalloc(bytes);
-	// Éè¶¨ziplistµÄÊôĞÔ
-	ZIPLIST_BYTES(zl) = intrev32ifbe(bytes); // Éè¶¨ziplistËùÕ¼µÄ×Ö½ÚÊı£¬ÈçÓĞ±ØÒª½øĞĞ´óĞ¡¶Ë×ª»»
-	ZIPLIST_TAIL_OFFSET(zl) = intrev32ifbe(ZIPLIST_HEADER_SIZE); // Éè¶¨Î²½ÚµãÏà¶ÔÍ·²¿µÄÆ«ÒÆÁ¿
-	ZIPLIST_LENGTH(zl) = 0;	// Éè¶¨ziplistÄÚµÄ½ÚµãÊı
-	// Éè¶¨Î²²¿Ò»¸ö×Ö½ÚÎ»0xFF
+	// è®¾å®šziplistçš„å±æ€§
+	ZIPLIST_BYTES(zl) = intrev32ifbe(bytes); // è®¾å®šziplistæ‰€å çš„å­—èŠ‚æ•°ï¼Œå¦‚æœ‰å¿…è¦è¿›è¡Œå¤§å°ç«¯è½¬æ¢
+	ZIPLIST_TAIL_OFFSET(zl) = intrev32ifbe(ZIPLIST_HEADER_SIZE); // è®¾å®šå°¾èŠ‚ç‚¹ç›¸å¯¹å¤´éƒ¨çš„åç§»é‡
+	ZIPLIST_LENGTH(zl) = 0;	// è®¾å®šziplistå†…çš„èŠ‚ç‚¹æ•°
+	// è®¾å®šå°¾éƒ¨ä¸€ä¸ªå­—èŠ‚ä½0xFF
 	zl[bytes - 1] = ZIP_END;
 	return zl;
 }
 
-/* µ÷Õûziplist´óĞ¡ */
+/* è°ƒæ•´ziplistå¤§å° */
 unsigned char *ziplistResize(unsigned char *zl, unsigned int len)
 {
 	zl = (unsigned char *)zrealloc(zl, len);
@@ -384,23 +384,23 @@ unsigned char *ziplistResize(unsigned char *zl, unsigned int len)
 	zl[len - 1] = ZIP_END;
 	return zl;
 }
-/* -----------------------------------ziplist µ×²ãÊµÏÖ-----------------------------------------*/
+/* -----------------------------------ziplist åº•å±‚å®ç°-----------------------------------------*/
 /**
-* µ±½«Ò»¸öĞÂ½ÚµãÌí¼Óµ½Ä³¸ö½ÚµãÖ®Ç°µÄÊ±ºò£¬Èç¹ûÔ­½ÚµãµÄprevlen²»×ãÒÔ±£´æĞÂ½ÚµãµÄ³¤¶È£¬
-* ÄÇÃ´¾ÍĞèÒª¶ÔÔ­½ÚµãµÄ¿Õ¼ä½øĞĞÀ©Õ¹£¨´Ó 1 ×Ö½ÚÀ©Õ¹µ½ 5 ×Ö½Ú£©¡£
+* å½“å°†ä¸€ä¸ªæ–°èŠ‚ç‚¹æ·»åŠ åˆ°æŸä¸ªèŠ‚ç‚¹ä¹‹å‰çš„æ—¶å€™ï¼Œå¦‚æœåŸèŠ‚ç‚¹çš„prevlenä¸è¶³ä»¥ä¿å­˜æ–°èŠ‚ç‚¹çš„é•¿åº¦ï¼Œ
+* é‚£ä¹ˆå°±éœ€è¦å¯¹åŸèŠ‚ç‚¹çš„ç©ºé—´è¿›è¡Œæ‰©å±•ï¼ˆä» 1 å­—èŠ‚æ‰©å±•åˆ° 5 å­—èŠ‚ï¼‰ã€‚
 *
-* µ«ÊÇ£¬µ±¶ÔÔ­½Úµã½øĞĞÀ©Õ¹Ö®ºó£¬Ô­½ÚµãµÄÏÂÒ»¸ö½ÚµãµÄ prevlen ¿ÉÄÜ³öÏÖ¿Õ¼ä²»×ã£¬
-* ÕâÖÖÇé¿öÔÚ¶à¸öÁ¬Ğø½ÚµãµÄ³¤¶È¶¼½Ó½ü ZIP_BIGLEN Ê±¿ÉÄÜ·¢Éú¡£
+* ä½†æ˜¯ï¼Œå½“å¯¹åŸèŠ‚ç‚¹è¿›è¡Œæ‰©å±•ä¹‹åï¼ŒåŸèŠ‚ç‚¹çš„ä¸‹ä¸€ä¸ªèŠ‚ç‚¹çš„ prevlen å¯èƒ½å‡ºç°ç©ºé—´ä¸è¶³ï¼Œ
+* è¿™ç§æƒ…å†µåœ¨å¤šä¸ªè¿ç»­èŠ‚ç‚¹çš„é•¿åº¦éƒ½æ¥è¿‘ ZIP_BIGLEN æ—¶å¯èƒ½å‘ç”Ÿã€‚
 *
-* Õâ¸öº¯Êı¾ÍÓÃÓÚ´¦ÀíÕâÖÖÁ¬ĞøÀ©Õ¹¶¯×÷¡£
+* è¿™ä¸ªå‡½æ•°å°±ç”¨äºå¤„ç†è¿™ç§è¿ç»­æ‰©å±•åŠ¨ä½œã€‚
 *
-* ÒòÎª½ÚµãµÄ³¤¶È±äĞ¡¶øÒıÆğµÄÁ¬ĞøËõĞ¡Ò²ÊÇ¿ÉÄÜ³öÏÖµÄ£¬²»¹ı£¬ÎªÁË±ÜÃâÀ©Õ¹-ËõĞ¡-À©Õ¹-ËõĞ¡ÕâÑùµÄÇé¿ö·´¸´³öÏÖ£¨flapping£¬¶¶¶¯£©£¬
-* ÎÒÃÇ²»´¦ÀíÕâÖÖÇé¿ö£¬¶øÊÇÈÎÓÉ prevlen ±ÈËùĞèµÄ³¤¶È¸ü³¤
+* å› ä¸ºèŠ‚ç‚¹çš„é•¿åº¦å˜å°è€Œå¼•èµ·çš„è¿ç»­ç¼©å°ä¹Ÿæ˜¯å¯èƒ½å‡ºç°çš„ï¼Œä¸è¿‡ï¼Œä¸ºäº†é¿å…æ‰©å±•-ç¼©å°-æ‰©å±•-ç¼©å°è¿™æ ·çš„æƒ…å†µåå¤å‡ºç°ï¼ˆflappingï¼ŒæŠ–åŠ¨ï¼‰ï¼Œ
+* æˆ‘ä»¬ä¸å¤„ç†è¿™ç§æƒ…å†µï¼Œè€Œæ˜¯ä»»ç”± prevlen æ¯”æ‰€éœ€çš„é•¿åº¦æ›´é•¿
 *
-* ¸´ÔÓ¶È£ºO(N^2)
+* å¤æ‚åº¦ï¼šO(N^2)
 *
-* ·µ»ØÖµ£º¸üĞÂºóµÄ ziplist
-* zl: ziplistÊ×µØÖ·£¬p:ĞèÒªÀ©Õ¹prevlensizeµÄ½ÚµãÊ×µØÖ·
+* è¿”å›å€¼ï¼šæ›´æ–°åçš„ ziplist
+* zl: ziplisté¦–åœ°å€ï¼Œp:éœ€è¦æ‰©å±•prevlensizeçš„èŠ‚ç‚¹é¦–åœ°å€
 */
 unsigned char *__ziplistCascadeUpdate(unsigned char *zl, unsigned char *p)
 {
@@ -412,64 +412,64 @@ unsigned char *__ziplistCascadeUpdate(unsigned char *zl, unsigned char *p)
 
 	while (p[0] != ZIP_END)
 	{
-		// ½«pËùÖ¸Ïò½ÚµãµÄĞÅÏ¢±£´æµ½cur½á¹¹ÌåÖĞ
+		// å°†pæ‰€æŒ‡å‘èŠ‚ç‚¹çš„ä¿¡æ¯ä¿å­˜åˆ°curç»“æ„ä½“ä¸­
 		zipEntry(p, &cur);
-		// µ±Ç°½ÚµãµÄ³¤¶È
+		// å½“å‰èŠ‚ç‚¹çš„é•¿åº¦
 		rawlen = cur.headersize + cur.len;
-		// ±àÂëµ±Ç°½ÚµãµÄ³¤¶ÈËùĞèµÄ×Ö½ÚÊı
+		// ç¼–ç å½“å‰èŠ‚ç‚¹çš„é•¿åº¦æ‰€éœ€çš„å­—èŠ‚æ•°
 		rawlensize = zipPrevEncodeLength(NULL, rawlen);
 
-		// ºóÃæÃ»ÓĞÆäËû½ÚµãÁË
+		// åé¢æ²¡æœ‰å…¶ä»–èŠ‚ç‚¹äº†
 		if (p[rawlen] == ZIP_END) break;
 		zipEntry(p + rawlen, &next);
 
-		// Ç°ÃæÒ»¸ö½ÚµãµÄ³¤¶ÈÃ»ÓĞ¸Ä±ä 
+		// å‰é¢ä¸€ä¸ªèŠ‚ç‚¹çš„é•¿åº¦æ²¡æœ‰æ”¹å˜ 
 		if (next.prevrawlen == rawlen) break;
 
-		// ÏÂÒ»½ÚµãµÄ³¤¶È±àÂë¿Õ¼ä²»×ã£¬½øĞĞÀ©Õ¹  
+		// ä¸‹ä¸€èŠ‚ç‚¹çš„é•¿åº¦ç¼–ç ç©ºé—´ä¸è¶³ï¼Œè¿›è¡Œæ‰©å±•  
 		if (next.prevrawlensize < rawlensize)
 		{
 			offset = p - zl;
-			// ĞèÒªÀ©Õ¹µÄ×Ö½ÚÊı
+			// éœ€è¦æ‰©å±•çš„å­—èŠ‚æ•°
 			extra = rawlensize - next.prevrawlensize;
 			zl = ziplistResize(zl, curlen + extra);
 			p = zl + offset;
 
-			// µ±Ç°Ö¸ÕëºÍÏÂÒ»¸öÔªËØµÄÆ«ÒÆÁ¿
+			// å½“å‰æŒ‡é’ˆå’Œä¸‹ä¸€ä¸ªå…ƒç´ çš„åç§»é‡
 			np = p + rawlen;
 			noffset = np - zl;
 
-			// µ±ÏÂÒ»¸öÔªËØ²»ÊÇ×îºóÒ»¸öÔªËØÊ±£¬¸üĞÂÆ«ÒÆÁ¿
+			// å½“ä¸‹ä¸€ä¸ªå…ƒç´ ä¸æ˜¯æœ€åä¸€ä¸ªå…ƒç´ æ—¶ï¼Œæ›´æ–°åç§»é‡
 			if ((zl + intrev32ifbe(ZIPLIST_TAIL_OFFSET(zl))) != np)
 			{
 				ZIPLIST_TAIL_OFFSET(zl) = intrev32ifbe(intrev32ifbe(ZIPLIST_TAIL_OFFSET(zl)) + extra);
 			}
 
-			// ½«¾ÉµÄÏÂÒ»¸ö½ÚµãnextµÄÊı¾İÇøµ½ziplistÎ²²¿È«²¿ÏòºóÆ«ÒÆ£¬¿ÕÓà³örawlensize¸ö×Ö½ÚÓÃÀ´´æ´¢ÉÏ¸ö½ÚµãµÄ³¤¶È 
+			// å°†æ—§çš„ä¸‹ä¸€ä¸ªèŠ‚ç‚¹nextçš„æ•°æ®åŒºåˆ°ziplistå°¾éƒ¨å…¨éƒ¨å‘ååç§»ï¼Œç©ºä½™å‡ºrawlensizeä¸ªå­—èŠ‚ç”¨æ¥å­˜å‚¨ä¸Šä¸ªèŠ‚ç‚¹çš„é•¿åº¦ 
 			memmove(np + rawlensize, np + next.prevrawlensize, curlen - noffset - next.prevrawlensize - 1);
 			zipPrevEncodeLength(np, rawlen);
 
-			// ÏÂÒ»¸ö½Úµã
+			// ä¸‹ä¸€ä¸ªèŠ‚ç‚¹
 			p += rawlen;
-			// ¸üĞÂµ±Ç°ziplistµÄ³¤¶È
+			// æ›´æ–°å½“å‰ziplistçš„é•¿åº¦
 			curlen += extra;
 		}
 		else
 		{
-			// ÏÂÒ»½ÚµãµÄ³¤¶È±àÂë¿Õ¼äÓĞ¶àÓà£¬²»½øĞĞÊÕËõ£¬Ö»ÊÇ½«±»±àÂëµÄ³¤¶ÈĞ´Èë¿Õ¼ä
+			// ä¸‹ä¸€èŠ‚ç‚¹çš„é•¿åº¦ç¼–ç ç©ºé—´æœ‰å¤šä½™ï¼Œä¸è¿›è¡Œæ”¶ç¼©ï¼Œåªæ˜¯å°†è¢«ç¼–ç çš„é•¿åº¦å†™å…¥ç©ºé—´
 			if (next.prevrawlensize > rawlensize)
 				zipPrevEncodeLengthForceLarge(p + rawlen, rawlen);
 			else
 				zipPrevEncodeLength(p + rawlen, rawlen);
 
-			// ÍË³ö£¬´ú±í¿Õ¼ä×ã¹»£¬ºóĞø¿Õ¼ä²»ĞèÒª¸ü¸Ä
+			// é€€å‡ºï¼Œä»£è¡¨ç©ºé—´è¶³å¤Ÿï¼Œåç»­ç©ºé—´ä¸éœ€è¦æ›´æ”¹
 			break;
 		}
 	}
 	return zl;
 }
 
-/* ´Óp¿ªÊ¼É¾³ınum¸ö½Úµã */
+/* ä»på¼€å§‹åˆ é™¤numä¸ªèŠ‚ç‚¹ */
 unsigned char *__ziplistDelete(unsigned char *zl, unsigned char *p, unsigned int num)
 {
 	unsigned int i, totlen;
@@ -478,125 +478,125 @@ unsigned char *__ziplistDelete(unsigned char *zl, unsigned char *p, unsigned int
 	int nextdiff = 0;
 	zlentry first, tail;
 
-	// É¾³ıµÄÊ×¸ö½Úµã
+	// åˆ é™¤çš„é¦–ä¸ªèŠ‚ç‚¹
 	zipEntry(p, &first);
-	// ¼ÆËãnum¸ö½ÚµãÕ¼ÓÃµÄÄÚ´æ
+	// è®¡ç®—numä¸ªèŠ‚ç‚¹å ç”¨çš„å†…å­˜
 	for (i = 0; p[0] != ZIP_END && i < num; i++)
 	{
-		// Æ«ÒÆµ½ÏÂÒ»¸ö½Úµã
+		// åç§»åˆ°ä¸‹ä¸€ä¸ªèŠ‚ç‚¹
 		p += zipRawEntryLength(p);
 		deleted++;
 	}
 
-	// ±»É¾³ıµÄ½ÚµãµÄ×Ü×Ö½ÚÊı
+	// è¢«åˆ é™¤çš„èŠ‚ç‚¹çš„æ€»å­—èŠ‚æ•°
 	totlen = p - first.p;
 	if (totlen > 0)
 	{
 		if (p[0] != ZIP_END)
 		{
-			// ¼ÆËãÉ¾³ıµÄµÚÒ»¸ö½ÚµãfirstµÄprevrawlensizeÓëp½ÚµãprevrawlensizeµÄ²îÖµ  
+			// è®¡ç®—åˆ é™¤çš„ç¬¬ä¸€ä¸ªèŠ‚ç‚¹firstçš„prevrawlensizeä¸pèŠ‚ç‚¹prevrawlensizeçš„å·®å€¼  
 			nextdiff = zipPrevLenByteDiff(p, first.prevrawlen);
-			//¸ù¾İnextdiffÖµ£¬¶Ôp½øĞĞÏòÇ°»òÏòºóÆ«ÒÆ£¬ÁôÈ¡µÄ×Ö½ÚÀ´±£´æfirst.prevrawlen
+			//æ ¹æ®nextdiffå€¼ï¼Œå¯¹pè¿›è¡Œå‘å‰æˆ–å‘ååç§»ï¼Œç•™å–çš„å­—èŠ‚æ¥ä¿å­˜first.prevrawlen
 			p -= nextdiff;
-			// ½«first.prevrawlenÖµ´æ´¢ÔÚpµÄprevrawlensizeÖĞ
+			// å°†first.prevrawlenå€¼å­˜å‚¨åœ¨pçš„prevrawlensizeä¸­
 			zipPrevEncodeLength(p, first.prevrawlen);
 
 			ZIPLIST_TAIL_OFFSET(zl) = intrev32ifbe(intrev32ifbe(ZIPLIST_TAIL_OFFSET(zl)) - totlen);
 
-			// Èç¹ûp²»ÊÇÎ²½Úµã£¬ÄÇÃ´Î²½ÚµãÖ¸ÕëµÄÊ×µØÖ·»¹ĞèÒª¼ÓÉÏnextdiff
+			// å¦‚æœpä¸æ˜¯å°¾èŠ‚ç‚¹ï¼Œé‚£ä¹ˆå°¾èŠ‚ç‚¹æŒ‡é’ˆçš„é¦–åœ°å€è¿˜éœ€è¦åŠ ä¸Šnextdiff
 			zipEntry(p, &tail);
 			if (p[tail.headersize + tail.len] != ZIP_END)
 			{
 				ZIPLIST_TAIL_OFFSET(zl) = intrev32ifbe(intrev32ifbe(ZIPLIST_TAIL_OFFSET(zl)) + nextdiff);
 			}
 
-			// first.pÖÁpÖ®¼äµÄ½Úµã¶¼ÊÇĞèÒªÉ¾³ıµÄ£¬Òò´ËĞèÒª½«p¿ªÊ¼µÄÊı¾İÏòÇ°Æ«ÒÆ£¬zlend²»ĞèÒª´¦Àí£¬Òò´ËĞèÒª-1 
+			// first.pè‡³pä¹‹é—´çš„èŠ‚ç‚¹éƒ½æ˜¯éœ€è¦åˆ é™¤çš„ï¼Œå› æ­¤éœ€è¦å°†på¼€å§‹çš„æ•°æ®å‘å‰åç§»ï¼Œzlendä¸éœ€è¦å¤„ç†ï¼Œå› æ­¤éœ€è¦-1 
 			memmove(first.p, p, intrev32ifbe(ZIPLIST_BYTES(zl)) - (p - zl) - 1);
 		}
 		else
 		{
-			// Èç¹ûÒÑ¾­É¾³ıµ½zlend£¬ÄÇÃ´Î²½ÚµãÖ¸ÕëÓ¦¸ÃÖ¸Ïò±»É¾³ıµÄfirstÖ®Ç°µÄ½ÚµãÊ×µØÖ·
+			// å¦‚æœå·²ç»åˆ é™¤åˆ°zlendï¼Œé‚£ä¹ˆå°¾èŠ‚ç‚¹æŒ‡é’ˆåº”è¯¥æŒ‡å‘è¢«åˆ é™¤çš„firstä¹‹å‰çš„èŠ‚ç‚¹é¦–åœ°å€
 			ZIPLIST_TAIL_OFFSET(zl) = intrev32ifbe((first.p - zl) - first.prevrawlen);
 		}
 
-		//  ËõĞ¡ÄÚ´æ²¢¸üĞÂziplistµÄ³¤¶È
+		//  ç¼©å°å†…å­˜å¹¶æ›´æ–°ziplistçš„é•¿åº¦
 		offset = first.p - zl;
 		zl = ziplistResize(zl, intrev32ifbe(ZIPLIST_BYTES(zl)) - totlen + nextdiff);
 		ZIPLIST_INCR_LENGTH(zl, -deleted);
 		p = zl + offset;
 
-		// Èç¹ûnextdiff²»µÈÓÚ0£¬ËµÃ÷ÏÖÔÚµÄp½ÚµãµÄ³¤¶È±äÁË£¬ĞèÒª¼¶Áª¸üĞÂÏÂ¸ö½ÚµãÄÜ·ñ±£´æp½ÚµãµÄ³¤¶ÈÖµ
+		// å¦‚æœnextdiffä¸ç­‰äº0ï¼Œè¯´æ˜ç°åœ¨çš„pèŠ‚ç‚¹çš„é•¿åº¦å˜äº†ï¼Œéœ€è¦çº§è”æ›´æ–°ä¸‹ä¸ªèŠ‚ç‚¹èƒ½å¦ä¿å­˜pèŠ‚ç‚¹çš„é•¿åº¦å€¼
 		if (nextdiff != 0)
 			zl = __ziplistCascadeUpdate(zl, p);
 	}
 	return zl;
 }
 
-/* ²åÈë½Úµãµ×²ãÊµÏÖ */
+/* æ’å…¥èŠ‚ç‚¹åº•å±‚å®ç° */
 unsigned char *__ziplistInsert(unsigned char *zl, unsigned char *p, unsigned char *s, unsigned int slen)
 {
-	size_t curlen = intrev32ifbe(ZIPLIST_BYTES(zl)); // µ±Ç°³¤¶È
-	size_t reqlen; // ²åÈë½ÚµãºóĞèÒªµÄ³¤¶È
-	unsigned int prevlensize = 0; // Ç°ÖÃ½Úµã³¤¶È
-	unsigned int prevlen = 0; // ±àÂë¸Ã³¤¶ÈÖµËùĞèµÄ³¤¶È
+	size_t curlen = intrev32ifbe(ZIPLIST_BYTES(zl)); // å½“å‰é•¿åº¦
+	size_t reqlen; // æ’å…¥èŠ‚ç‚¹åéœ€è¦çš„é•¿åº¦
+	unsigned int prevlensize = 0; // å‰ç½®èŠ‚ç‚¹é•¿åº¦
+	unsigned int prevlen = 0; // ç¼–ç è¯¥é•¿åº¦å€¼æ‰€éœ€çš„é•¿åº¦
 	size_t offset = 0;
 	int  nextdiff = 0;
 	unsigned char encoding = 0;
-	long long value = 123456789; // ÎªÁË±ÜÃâ¾¯¸æ£¬³õÊ¼»¯ÆäÖµ
+	long long value = 123456789; // ä¸ºäº†é¿å…è­¦å‘Šï¼Œåˆå§‹åŒ–å…¶å€¼
 	zlentry tail;
 
-	// ÕÒ³ö´ı²åÈë½ÚµãµÄÇ°ÖÃ½Úµã³¤¶È
-	if (p[0] != ZIP_END) // Èç¹ûp[0]²»Ö¸ÏòÁĞ±íÄ©¶Ë£¬ËµÃ÷ÁĞ±í·Ç¿Õ£¬²¢ÇÒpÖ¸ÏòÆäÖĞÒ»¸ö½Úµã
+	// æ‰¾å‡ºå¾…æ’å…¥èŠ‚ç‚¹çš„å‰ç½®èŠ‚ç‚¹é•¿åº¦
+	if (p[0] != ZIP_END) // å¦‚æœp[0]ä¸æŒ‡å‘åˆ—è¡¨æœ«ç«¯ï¼Œè¯´æ˜åˆ—è¡¨éç©ºï¼Œå¹¶ä¸”pæŒ‡å‘å…¶ä¸­ä¸€ä¸ªèŠ‚ç‚¹
 	{
-		// ½âÂëÇ°ÖÃ½ÚµãpµÄ³¤¶ÈºÍ±àÂë¸Ã³¤¶ÈĞèÒªµÄ×Ö½Ú
+		// è§£ç å‰ç½®èŠ‚ç‚¹pçš„é•¿åº¦å’Œç¼–ç è¯¥é•¿åº¦éœ€è¦çš„å­—èŠ‚
 		ZIP_DECODE_PREVLEN(p, prevlensize, prevlen);
 	}
 	else
 	{
-		// Èç¹ûpÖ¸ÏòÁĞ±íÄ©¶Ë£¬±íÊ¾ÁĞ±íÎª¿Õ
+		// å¦‚æœpæŒ‡å‘åˆ—è¡¨æœ«ç«¯ï¼Œè¡¨ç¤ºåˆ—è¡¨ä¸ºç©º
 		unsigned char *ptail = ZIPLIST_ENTRY_TAIL(zl);
 
 		if (ptail[0] != ZIP_END)
-			prevlen = zipRawEntryLength(ptail); // ¼ÆËãÎ²½ÚµãµÄ³¤¶È
+			prevlen = zipRawEntryLength(ptail); // è®¡ç®—å°¾èŠ‚ç‚¹çš„é•¿åº¦
 	}
 
-	// ÅĞ¶ÏÊÇ·ñÄÜ¹»±àÂëÎªÕûÊı
+	// åˆ¤æ–­æ˜¯å¦èƒ½å¤Ÿç¼–ç ä¸ºæ•´æ•°
 	if (zipTryEncoding(s, slen, &value, &encoding))
-		reqlen = zipIntSize(encoding); // ¸Ã½ÚµãÒÑ¾­±àÂëÎªÕûÊı£¬Í¨¹ıencodingÀ´»ñÈ¡±àÂë³¤¶È
+		reqlen = zipIntSize(encoding); // è¯¥èŠ‚ç‚¹å·²ç»ç¼–ç ä¸ºæ•´æ•°ï¼Œé€šè¿‡encodingæ¥è·å–ç¼–ç é•¿åº¦
 	else
-		reqlen = slen; // ²ÉÓÃ×Ö·û´®À´±àÂë¸Ã½Úµã
+		reqlen = slen; // é‡‡ç”¨å­—ç¬¦ä¸²æ¥ç¼–ç è¯¥èŠ‚ç‚¹
 
-	// »ñÈ¡Ç°ÖÃ½ÚµãµÄ±àÂë³¤¶È
+	// è·å–å‰ç½®èŠ‚ç‚¹çš„ç¼–ç é•¿åº¦
 	reqlen += zipPrevEncodeLength(NULL, prevlen);
-	// »ñÈ¡µ±Ç°½ÚµãµÄ±àÂë³¤¶È
+	// è·å–å½“å‰èŠ‚ç‚¹çš„ç¼–ç é•¿åº¦
 	reqlen += zipEncodeLength(NULL, encoding, slen);
 
-	// Ö»Òª²»ÊÇ²åÈëµ½ÁĞ±íµÄÄ©¶Ë£¬¶¼ĞèÒªÅĞ¶Ïµ±Ç°pËùÖ¸ÏòµÄ½ÚµãheaderÊÇ·ñÄÜ´æ·ÅĞÂ½ÚµãµÄ³¤¶È±àÂë
-	// nextdiff±£´æĞÂ¾É±àÂëÖ®¼äµÄ×Ö½Ú´óĞ¡²î£¬Èç¹ûÕâ¸öÖµ´óÓÚ0
-	// ÄÇ¾ÍËµÃ÷µ±Ç°pÖ¸ÏòµÄ½ÚµãµÄheader½øĞĞÀ©Õ¹
+	// åªè¦ä¸æ˜¯æ’å…¥åˆ°åˆ—è¡¨çš„æœ«ç«¯ï¼Œéƒ½éœ€è¦åˆ¤æ–­å½“å‰pæ‰€æŒ‡å‘çš„èŠ‚ç‚¹headeræ˜¯å¦èƒ½å­˜æ”¾æ–°èŠ‚ç‚¹çš„é•¿åº¦ç¼–ç 
+	// nextdiffä¿å­˜æ–°æ—§ç¼–ç ä¹‹é—´çš„å­—èŠ‚å¤§å°å·®ï¼Œå¦‚æœè¿™ä¸ªå€¼å¤§äº0
+	// é‚£å°±è¯´æ˜å½“å‰pæŒ‡å‘çš„èŠ‚ç‚¹çš„headerè¿›è¡Œæ‰©å±•
 	nextdiff = (p[0] != ZIP_END) ? zipPrevLenByteDiff(p, reqlen) : 0;
 
-	// ´æ´¢pÏà¶ÔÓÚÁĞ±ízlµÄÆ«ÒÆµØÖ·
+	// å­˜å‚¨pç›¸å¯¹äºåˆ—è¡¨zlçš„åç§»åœ°å€
 	offset = p - zl;
-	// ÖØĞÂ·ÖÅä¿Õ¼ä£¬curlenµ±Ç°ÁĞ±íµÄ³¤¶È
-	// reqlen ĞÂ½ÚµãµÄÈ«²¿³¤¶È
-	// nextdiff ĞÂ½ÚµãµÄºó¼Ì½ÚµãÀ©Õ¹headerµÄ³¤¶È
+	// é‡æ–°åˆ†é…ç©ºé—´ï¼Œcurlenå½“å‰åˆ—è¡¨çš„é•¿åº¦
+	// reqlen æ–°èŠ‚ç‚¹çš„å…¨éƒ¨é•¿åº¦
+	// nextdiff æ–°èŠ‚ç‚¹çš„åç»§èŠ‚ç‚¹æ‰©å±•headerçš„é•¿åº¦
 	zl = ziplistResize(zl, curlen + reqlen + nextdiff);
-	// ÖØĞÂ»ñÈ¡pµÄÖµ
+	// é‡æ–°è·å–pçš„å€¼
 	p = zl + offset;
 
 	if (p[0] != ZIP_END)
 	{
-		// ÒÆ¶¯ÏÖÓĞÔªËØ£¬ÎªĞÂÔªËØµÄ²åÈëÌá¹©¿Õ¼ä
+		// ç§»åŠ¨ç°æœ‰å…ƒç´ ï¼Œä¸ºæ–°å…ƒç´ çš„æ’å…¥æä¾›ç©ºé—´
 		memmove(p + reqlen, p - nextdiff, curlen - offset - 1 + nextdiff);
 
-		// p+reqlenÎªĞÂ½ÚµãÇ°ÖÃ½ÚµãÒÆ¶¯ºóµÄÎ»ÖÃ£¬½«ĞÂ½ÚµãµÄ³¤¶È±àÂëÖÁÇ°ÖÃ½Úµã
+		// p+reqlenä¸ºæ–°èŠ‚ç‚¹å‰ç½®èŠ‚ç‚¹ç§»åŠ¨åçš„ä½ç½®ï¼Œå°†æ–°èŠ‚ç‚¹çš„é•¿åº¦ç¼–ç è‡³å‰ç½®èŠ‚ç‚¹
 		zipPrevEncodeLength(p + reqlen, reqlen);
 
-		// ¸üĞÂÁĞ±íÎ²Ïà¶ÔÓÚ±íÍ·µÄÆ«ÒÆÁ¿£¬½«ĞÂ½ÚµãµÄ³¤¶ÈËãÉÏ
+		// æ›´æ–°åˆ—è¡¨å°¾ç›¸å¯¹äºè¡¨å¤´çš„åç§»é‡ï¼Œå°†æ–°èŠ‚ç‚¹çš„é•¿åº¦ç®—ä¸Š
 		ZIPLIST_TAIL_OFFSET(zl) = intrev32ifbe(intrev32ifbe(ZIPLIST_TAIL_OFFSET(zl)) + reqlen);
 
-		// Èç¹ûĞÂ½ÚµãºóÃæÓĞ¶à¸ö½Úµã£¬ÄÇÃ´±íÎ²µÄÆ«ÒÆÁ¿ĞèÒªËãÉÏnextdiffµÄÖµ
+		// å¦‚æœæ–°èŠ‚ç‚¹åé¢æœ‰å¤šä¸ªèŠ‚ç‚¹ï¼Œé‚£ä¹ˆè¡¨å°¾çš„åç§»é‡éœ€è¦ç®—ä¸Šnextdiffçš„å€¼
 		zipEntry(p + reqlen, &tail);
 		if (p[reqlen + tail.headersize + tail.len] != ZIP_END)
 			ZIPLIST_TAIL_OFFSET(zl) = intrev32ifbe(intrev32ifbe(ZIPLIST_TAIL_OFFSET(zl) + nextdiff));
@@ -606,40 +606,40 @@ unsigned char *__ziplistInsert(unsigned char *zl, unsigned char *p, unsigned cha
 		ZIPLIST_TAIL_OFFSET(zl) = intrev32ifbe(p - zl);
 	}
 
-	// µ±nextdiff²»Îª0Ê±£¬±íÊ¾ĞèÒªĞÂ½ÚµãµÄºó¼Ì½Úµã¶ÔÍ·²¿½øĞĞÀ©Õ¹
+	// å½“nextdiffä¸ä¸º0æ—¶ï¼Œè¡¨ç¤ºéœ€è¦æ–°èŠ‚ç‚¹çš„åç»§èŠ‚ç‚¹å¯¹å¤´éƒ¨è¿›è¡Œæ‰©å±•
 	if (nextdiff != 0)
 	{
 		offset = p - zl;
-		// ĞèÒª¶ÔpËùÖ¸ÏòµÄ½Úµãheader½øĞĞÀ©Õ¹¸üĞÂ
-		// ÓĞ¿ÉÄÜ»áÒıÆğÁ¬Ëø¸üĞÂ
+		// éœ€è¦å¯¹pæ‰€æŒ‡å‘çš„èŠ‚ç‚¹headerè¿›è¡Œæ‰©å±•æ›´æ–°
+		// æœ‰å¯èƒ½ä¼šå¼•èµ·è¿é”æ›´æ–°
 		zl = __ziplistCascadeUpdate(zl, p + reqlen);
 		p = zl + offset;
 	}
 
-	// ½«ĞÂ½ÚµãÇ°ÖÃ½ÚµãµÄ³¤¶ÈĞ´ÈëĞÂ½ÚµãµÄheader
+	// å°†æ–°èŠ‚ç‚¹å‰ç½®èŠ‚ç‚¹çš„é•¿åº¦å†™å…¥æ–°èŠ‚ç‚¹çš„header
 	p += zipPrevEncodeLength(p, prevlen);
-	// ½«ĞÂ½ÚµãµÄÖµ³¤¶ÈĞ´ÈëĞÂ½ÚµãµÄheader
+	// å°†æ–°èŠ‚ç‚¹çš„å€¼é•¿åº¦å†™å…¥æ–°èŠ‚ç‚¹çš„header
 	p += zipEncodeLength(p, encoding, slen);
-	// Ğ´Èë½ÚµãÖµ
+	// å†™å…¥èŠ‚ç‚¹å€¼
 	if (ZIP_IS_STR(encoding))
 		memcpy(p, s, slen);
 	else
 		zipSaveInteger(p, value, encoding);
-	// ¸üĞÂÁĞ±í½Úµã¼ÆÊı
+	// æ›´æ–°åˆ—è¡¨èŠ‚ç‚¹è®¡æ•°
 	ZIPLIST_INCR_LENGTH(zl, 1);
 	return zl;
 }
 
-/*---------------------------------ziplist ¸÷¸ö½Ó¿Ú---------------------------------------------*/
+/*---------------------------------ziplist å„ä¸ªæ¥å£---------------------------------------------*/
 
-/* ºÏ²¢Á½¸öÑ¹ËõÁ´±í,°ÑµÚ¶ş¸ö¼Óµ½µÚÒ»¸öµÄºóÃæ£¬·µ»ØÒ»¸öĞÂµÄziplist */
+/* åˆå¹¶ä¸¤ä¸ªå‹ç¼©é“¾è¡¨,æŠŠç¬¬äºŒä¸ªåŠ åˆ°ç¬¬ä¸€ä¸ªçš„åé¢ï¼Œè¿”å›ä¸€ä¸ªæ–°çš„ziplist */
 unsigned char *ziplistMerge(unsigned char **first, unsigned char **second)
 {
-	// Èç¹ûÓĞÒ»¸ö²ÎÊıÊÇNULL, ²»ÄÜ½øĞĞºÏ²¢
+	// å¦‚æœæœ‰ä¸€ä¸ªå‚æ•°æ˜¯NULL, ä¸èƒ½è¿›è¡Œåˆå¹¶
 	if (first == NULL || *first == NULL || second == NULL || *second == NULL)
 		return NULL;
 
-	// ²»ÄÜºÏ²¢Á½¸öÏàÍ¬µÄÁ´±í
+	// ä¸èƒ½åˆå¹¶ä¸¤ä¸ªç›¸åŒçš„é“¾è¡¨
 	if (*first == *second)
 		return NULL;
 
@@ -653,10 +653,10 @@ unsigned char *ziplistMerge(unsigned char **first, unsigned char **second)
 	unsigned char *source, *target;
 	size_t target_bytes, source_bytes;
 
-	// Ñ¡Ôñ×î´óµÄziplist£¬ÒÔ±ãÎÒÃÇ¿ÉÒÔÇáËÉµØµ÷Õû´óĞ¡
+	// é€‰æ‹©æœ€å¤§çš„ziplistï¼Œä»¥ä¾¿æˆ‘ä»¬å¯ä»¥è½»æ¾åœ°è°ƒæ•´å¤§å°
 	if (first_len >= second_len)
 	{
-		// ±£Áôfirst, °Ñsecond¸½¼Óµ½firstÉÏ
+		// ä¿ç•™first, æŠŠsecondé™„åŠ åˆ°firstä¸Š
 		target = *first;
 		target_bytes = first_bytes;
 		source = *second;
@@ -665,7 +665,7 @@ unsigned char *ziplistMerge(unsigned char **first, unsigned char **second)
 	}
 	else
 	{
-		// ±£Áôsecond, °ÑfirstÇ°ÖÃµ½second
+		// ä¿ç•™second, æŠŠfirstå‰ç½®åˆ°second
 		target = *second;
 		target_bytes = second_bytes;
 		source = *first;
@@ -673,16 +673,16 @@ unsigned char *ziplistMerge(unsigned char **first, unsigned char **second)
 		append = 0;
 	}
 
-	// ¼ÆËã×îÖÕµÄ×Ö½ÚÊı(¼õÈ¥Ò»¶ÔÔªÊı¾İ)
+	// è®¡ç®—æœ€ç»ˆçš„å­—èŠ‚æ•°(å‡å»ä¸€å¯¹å…ƒæ•°æ®)
 	size_t zlbytes = first_bytes + second_bytes - ZIPLIST_HEADER_SIZE - ZIPLIST_END_SIZE;
 	size_t zllenth = first_len + second_len;
 	zllenth = zllenth < UINT16_MAX ? zllenth : UINT16_MAX;
 
-	// ±£´æÆ«ÒÆÁ¿
+	// ä¿å­˜åç§»é‡
 	size_t first_offset = intrev32ifbe(ZIPLIST_TAIL_OFFSET(*first));
 	size_t second_offset = intrev32ifbe(ZIPLIST_TAIL_OFFSET(*second));
 
-	// ÖØĞÂ·ÖÅäÄÚ´æ
+	// é‡æ–°åˆ†é…å†…å­˜
 	target = (unsigned char *)zrealloc(target, zlbytes);
 	if (append == 1)
 	{
@@ -698,7 +698,7 @@ unsigned char *ziplistMerge(unsigned char **first, unsigned char **second)
 		memcpy(target, source, source_bytes - ZIPLIST_END_SIZE);
 	}
 
-	// ¸üĞÂÍ·ÔªÊı¾İ
+	// æ›´æ–°å¤´å…ƒæ•°æ®
 	ZIPLIST_BYTES(target) = intrev32ifbe(zlbytes);
 	ZIPLIST_LENGTH(target) = intrev16ifbe(zllenth);
 	ZIPLIST_TAIL_OFFSET(target) = intrev32ifbe(
@@ -707,7 +707,7 @@ unsigned char *ziplistMerge(unsigned char **first, unsigned char **second)
 
 	target = __ziplistCascadeUpdate(target, target + first_offset);
 
-	// ÊÍ·ÅÄÚ´æ
+	// é‡Šæ”¾å†…å­˜
 	if (append == 1)
 	{
 		zfree(*second);
@@ -723,29 +723,29 @@ unsigned char *ziplistMerge(unsigned char **first, unsigned char **second)
 	return target;
 }
 
-/* ´ÓÍ·»òÎ²²¿²åÈë½Úµã
-* zl: ´ı²åÈëµÄziplist
-* s£¬slen: ´ı²åÈë½ÚµãºÍÆä³¤¶È
-* where: ´ø²åÈëµÄÎ»ÖÃ£¬0´ú±íÍ·²¿²åÈë£¬1´ú±íÎ²²¿²åÈë
+/* ä»å¤´æˆ–å°¾éƒ¨æ’å…¥èŠ‚ç‚¹
+* zl: å¾…æ’å…¥çš„ziplist
+* sï¼Œslen: å¾…æ’å…¥èŠ‚ç‚¹å’Œå…¶é•¿åº¦
+* where: å¸¦æ’å…¥çš„ä½ç½®ï¼Œ0ä»£è¡¨å¤´éƒ¨æ’å…¥ï¼Œ1ä»£è¡¨å°¾éƒ¨æ’å…¥
 */
 unsigned char *ziplistPush(unsigned char *zl, unsigned char *s, unsigned int slen, int where)
 {
 	unsigned char *p;
-	// »ñÈ¡´ı²åÈëÎ»ÖÃµÄÖ¸Õë
+	// è·å–å¾…æ’å…¥ä½ç½®çš„æŒ‡é’ˆ
 	p = (where == ZIPLIST_HEAD) ? ZIPLIST_ENTRY_HEAD(zl) : ZIPLIST_ENTRY_END(zl);
 	return __ziplistInsert(zl, p, s, slen);
 }
 
-/* ¸ù¾İindexµÄÖµ£¬»ñÈ¡Ñ¹ËõÁĞ±íµÚindex¸ö½Úµã */
+/* æ ¹æ®indexçš„å€¼ï¼Œè·å–å‹ç¼©åˆ—è¡¨ç¬¬indexä¸ªèŠ‚ç‚¹ */
 unsigned char *ziplistIndex(unsigned char *zl, int index)
 {
 	unsigned char *p;
 	unsigned int prelensize, prelen = 0;
-	// indexÎª¸º£¬´ÓÎ²²¿¿ªÊ¼±éÀú
+	// indexä¸ºè´Ÿï¼Œä»å°¾éƒ¨å¼€å§‹éå†
 	if (index < 0)
 	{
 		index = (-index) - 1;
-		// »ñÈ¡Î²Ö¸Õë
+		// è·å–å°¾æŒ‡é’ˆ
 		p = ZIPLIST_ENTRY_TAIL(zl);
 		if (p[0] != ZIP_END)
 		{
@@ -762,17 +762,17 @@ unsigned char *ziplistIndex(unsigned char *zl, int index)
 		p = ZIPLIST_ENTRY_HEAD(zl);
 		while (p[0] != ZIP_END && index--)
 		{
-			// »ñÈ¡µ±Ç°½ÚµãµÄÕûÌå³¤¶È£¬°üÀ¨pre_entry_length£¬encoding£¬contentsÈı²¿·Ö
+			// è·å–å½“å‰èŠ‚ç‚¹çš„æ•´ä½“é•¿åº¦ï¼ŒåŒ…æ‹¬pre_entry_lengthï¼Œencodingï¼Œcontentsä¸‰éƒ¨åˆ†
 			p += zipRawEntryLength(p);
 		}
 	}
 	return (p[0] == ZIP_END || index > 0) ? NULL : p;
 }
 
-/* »ñµÃpµÄÏÂÒ»¸ö½Úµã£¬Èç¹ûpÊÇÎ²½Úµã£¬·µ»ØNULL */
+/* è·å¾—pçš„ä¸‹ä¸€ä¸ªèŠ‚ç‚¹ï¼Œå¦‚æœpæ˜¯å°¾èŠ‚ç‚¹ï¼Œè¿”å›NULL */
 unsigned char *ziplistNext(unsigned char *zl, unsigned char *p)
 {
-	((void)zl); //Õâ¾äµÄÒâÒåÊÇÉ¶¡£¡£
+	((void)zl); //è¿™å¥çš„æ„ä¹‰æ˜¯å•¥ã€‚ã€‚
 
 	if (p[0] == ZIP_END)
 	{
@@ -788,7 +788,7 @@ unsigned char *ziplistNext(unsigned char *zl, unsigned char *p)
 	return p;
 }
 
-/* »ñµÃpµÄÇ°Ò»¸ö½Úµã */
+/* è·å¾—pçš„å‰ä¸€ä¸ªèŠ‚ç‚¹ */
 unsigned char *ziplistPrev(unsigned char *zl, unsigned char *p)
 {
 	unsigned int prevlensize, prevlen = 0;
@@ -800,7 +800,7 @@ unsigned char *ziplistPrev(unsigned char *zl, unsigned char *p)
 	}
 	else if (p == ZIPLIST_ENTRY_HEAD(zl))
 	{
-		// Èç¹ûpÊÇÍ·½Úµã£¬ÄÇÃ»ÓĞÇ°ÖÃ½Úµã
+		// å¦‚æœpæ˜¯å¤´èŠ‚ç‚¹ï¼Œé‚£æ²¡æœ‰å‰ç½®èŠ‚ç‚¹
 		return NULL;
 	}
 	else
@@ -811,7 +811,7 @@ unsigned char *ziplistPrev(unsigned char *zl, unsigned char *p)
 	}
 }
 
-/* »ñµÃÖ¸ÕëpÖ¸ÏòµÄ½Úµã£¬¸ù¾İencoding±àÂë·Ö±ğ´æ´¢ÔÚsstr»òÕßlvalÖĞ */
+/* è·å¾—æŒ‡é’ˆpæŒ‡å‘çš„èŠ‚ç‚¹ï¼Œæ ¹æ®encodingç¼–ç åˆ†åˆ«å­˜å‚¨åœ¨sstræˆ–è€…lvalä¸­ */
 unsigned int ziplistGet(unsigned char *p, unsigned char **sval, unsigned int *slen, long long *lval)
 {
 	zlentry entry;
@@ -835,13 +835,13 @@ unsigned int ziplistGet(unsigned char *p, unsigned char **sval, unsigned int *sl
 	return 1;
 }
 
-/* ²åÈë½Úµã*/
+/* æ’å…¥èŠ‚ç‚¹*/
 unsigned char *ziplistInsert(unsigned char *zl, unsigned char *p, unsigned char *s, unsigned int slen)
 {
 	return __ziplistInsert(zl, p, s, slen);
 }
 
-/* °ÑÖ¸ÕëpºóÃæµÄÒ»¸ö½ÚµãÉ¾³ı */
+/* æŠŠæŒ‡é’ˆpåé¢çš„ä¸€ä¸ªèŠ‚ç‚¹åˆ é™¤ */
 unsigned char *ziplistDelete(unsigned char *zl, unsigned char **p)
 {
 	size_t offset = *p - zl;
@@ -851,14 +851,14 @@ unsigned char *ziplistDelete(unsigned char *zl, unsigned char **p)
 	return zl;
 }
 
-/* ´ÓindexÏÂ±ê¿ªÊ¼É¾³ınum¸ö½Úµã */
+/* ä»indexä¸‹æ ‡å¼€å§‹åˆ é™¤numä¸ªèŠ‚ç‚¹ */
 unsigned char *ziplistDeleteRange(unsigned char *zl, int index, unsigned int num)
 {
 	unsigned char *p = ziplistIndex(zl, index);
 	return (p == NULL) ? zl : __ziplistDelete(zl, p, num);
 }
 
-/* ½«³¤¶ÈÎª'slen'µÄ's'Óë'p'½øĞĞ±È½Ï£¬ */
+/* å°†é•¿åº¦ä¸º'slen'çš„'s'ä¸'p'è¿›è¡Œæ¯”è¾ƒï¼Œ */
 unsigned int ziplistCompare(unsigned char *p, unsigned char *s, unsigned int slen)
 {
 	zlentry entry;
@@ -869,7 +869,7 @@ unsigned int ziplistCompare(unsigned char *p, unsigned char *s, unsigned int sle
 	zipEntry(p, &entry);
 	if (ZIP_IS_STR(entry.encoding))
 	{
-		// Ô­Ê¼±È½Ï
+		// åŸå§‹æ¯”è¾ƒ
 		if (entry.len == slen)
 			return memcmp(p + entry.headersize, s, slen) == 0;
 		else
@@ -877,8 +877,8 @@ unsigned int ziplistCompare(unsigned char *p, unsigned char *s, unsigned int sle
 	}
 	else
 	{
-		// ³¢ÊÔ±È½Ï±àÂëÖµ
-		// ²»Òª±È½Ï±àÂë£¬ÒòÎª²»Í¬µÄÊµÏÖ¿ÉÄÜ²»Í¬µØ±àÂëÕûÊı
+		// å°è¯•æ¯”è¾ƒç¼–ç å€¼
+		// ä¸è¦æ¯”è¾ƒç¼–ç ï¼Œå› ä¸ºä¸åŒçš„å®ç°å¯èƒ½ä¸åŒåœ°ç¼–ç æ•´æ•°
 		if (zipTryEncoding(s, slen, &sval, &sencoding))
 		{
 			zval = zipLoadInteger(p + entry.headersize, entry.encoding);
@@ -888,7 +888,7 @@ unsigned int ziplistCompare(unsigned char *p, unsigned char *s, unsigned int sle
 	return 0;
 }
 
-/* ´ÓÎ»ÖÃp¿ªÊ¼²éÕÒÔªËØ, skip±íÊ¾Ã¿²éÕÒÒ»´ÎÌø¹ıµÄÔªËØ¸öÊı */
+/* ä»ä½ç½®på¼€å§‹æŸ¥æ‰¾å…ƒç´ , skipè¡¨ç¤ºæ¯æŸ¥æ‰¾ä¸€æ¬¡è·³è¿‡çš„å…ƒç´ ä¸ªæ•° */
 unsigned char *ziplistFind(unsigned char *p, unsigned char *vstr, unsigned int vlen, unsigned int skip)
 {
 	int skipcnt = 0;
@@ -900,14 +900,14 @@ unsigned char *ziplistFind(unsigned char *p, unsigned char *vstr, unsigned int v
 		unsigned int prevlensize, encoding, lensize, len;
 		unsigned char *q;
 
-		// È¡³öÔªËØÖĞÔªËØÄÚÈİ·ÅÈëqÖĞ
+		// å–å‡ºå…ƒç´ ä¸­å…ƒç´ å†…å®¹æ”¾å…¥qä¸­
 		ZIP_DECODE_PREVLENSIZE(p, prevlensize);
 		ZIP_DECODE_LENGTH(p + prevlensize, encoding, lensize, len);
 		q = p + prevlensize + lensize;
 
 		if (skipcnt == 0)
 		{
-			// Èç¹ûÔªËØÊÇ×Ö·û´®±àÂë
+			// å¦‚æœå…ƒç´ æ˜¯å­—ç¬¦ä¸²ç¼–ç 
 			if (ZIP_IS_STR(encoding))
 			{
 				if (len == vlen && memcmp(q, vstr, vlen) == 0)
@@ -917,18 +917,18 @@ unsigned char *ziplistFind(unsigned char *p, unsigned char *vstr, unsigned int v
 			}
 			else
 			{
-				// ÔªËØÊÇÕûÊı±àÂë, °´ÕÕÕûĞÍ½øĞĞ±È½Ï
+				// å…ƒç´ æ˜¯æ•´æ•°ç¼–ç , æŒ‰ç…§æ•´å‹è¿›è¡Œæ¯”è¾ƒ
 				if (vencoding == 0)
 				{
 					if (!zipTryEncoding(vstr, vlen, &vll, &vencoding))
 					{
-						// Èç¹ûÎŞ·¨½øĞĞÕûÊı±àÂë, ÔòÖ±½Ó¸³ÖµÎªUCHAR_MAXÒÔºó²»»áÔÚ½øĞĞÕûÊıÀàĞÍ±È½Ï
+						// å¦‚æœæ— æ³•è¿›è¡Œæ•´æ•°ç¼–ç , åˆ™ç›´æ¥èµ‹å€¼ä¸ºUCHAR_MAXä»¥åä¸ä¼šåœ¨è¿›è¡Œæ•´æ•°ç±»å‹æ¯”è¾ƒ
 						vencoding = UCHAR_MAX;
 					}
 					assert(vencoding);
 				}
 
-				// Èç¹û´ı²éÔªËØÊÇÕûĞÍ±àÂë, Ö±½Ó½øĞĞ±È½Ï
+				// å¦‚æœå¾…æŸ¥å…ƒç´ æ˜¯æ•´å‹ç¼–ç , ç›´æ¥è¿›è¡Œæ¯”è¾ƒ
 				if (vencoding != UCHAR_MAX)
 				{
 					long long ll = zipLoadInteger(q, encoding);
@@ -937,7 +937,7 @@ unsigned char *ziplistFind(unsigned char *p, unsigned char *vstr, unsigned int v
 				}
 			}
 
-			// ÖØÖÃÌø¹ıÔªËØÖµ
+			// é‡ç½®è·³è¿‡å…ƒç´ å€¼
 			skipcnt = skip;
 		}
 		else
@@ -945,14 +945,14 @@ unsigned char *ziplistFind(unsigned char *p, unsigned char *vstr, unsigned int v
 			skipcnt--;
 		}
 
-		// ÒÆ¶¯µ½ÏÂ¸öÔªËØÎ»ÖÃ
+		// ç§»åŠ¨åˆ°ä¸‹ä¸ªå…ƒç´ ä½ç½®
 		p = q + len;
 	}
 
 	return NULL;
 }
 
-/* ·µ»ØziplistµÄ³¤¶È */
+/* è¿”å›ziplistçš„é•¿åº¦ */
 unsigned int ziplistLen(unsigned char *zl)
 {
 	unsigned int len = 0;
@@ -978,7 +978,7 @@ unsigned int ziplistLen(unsigned char *zl)
 	return len;
 }
 
-/* ·µ»Øziplist blob´óĞ¡£¨ÒÔ×Ö½ÚÎªµ¥Î»£© */
+/* è¿”å›ziplist blobå¤§å°ï¼ˆä»¥å­—èŠ‚ä¸ºå•ä½ï¼‰ */
 unsigned int ziplistBlobLen(unsigned char *zl)
 {
 	return intrev32ifbe(ZIPLIST_BYTES(zl));
