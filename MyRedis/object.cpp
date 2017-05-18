@@ -109,9 +109,33 @@ int compareStringObjectsWithFlags(robj *a, robj *b, int flags)
 	}
 	else
 	{
-		//alen = ll2string(bufa, sizeof(bufa), (long)a->ptr);
+		alen = ll2string(bufa, sizeof(bufa), (long)a->ptr);
+		astr = bufa;
 	}
-	return 0;
+	if (sdsEncodedObject(b))
+	{
+		bstr = (char*)b->ptr;
+		blen = sdslen(bstr);
+	}
+	else
+	{
+		blen = ll2string(bufb, sizeof(bufb), (long)b->ptr);
+		bstr = bufb;
+	}
+
+	if (flags & REDIS_COMPARE_COLL) 
+	{
+		return strcoll(astr, bstr);
+	}
+	else
+	{
+		int cmp;
+
+		minlen = (alen < blen) ? alen : blen;
+		cmp = (int)memcpy(astr, bstr, minlen);
+		if (cmp == 0) return alen - blen;
+		return cmp;
+	}
 }
 
 /* 使用二进制进行比较 */

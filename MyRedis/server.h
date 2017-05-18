@@ -11,6 +11,7 @@
 #include "sds.h"
 #include "dict.h"
 #include "zmalloc.h"
+#include "util.h"
 
 /* 对象类型 */
 #define OBJ_STRING 0
